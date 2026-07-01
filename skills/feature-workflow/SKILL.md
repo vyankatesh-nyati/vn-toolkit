@@ -19,7 +19,7 @@ The orchestrator for building a feature from raw requirement to committed code. 
 
 ## The pipeline (ordered — do not reorder or skip)
 
-Invoke the named sub-skill at each step by bare name. The step 9–10 review skills are **pluggable**: if the named skill is not available, note it and continue — never block on an absent skill.
+Invoke the named sub-skill at each step by bare name. Step 9 (writing-tests) ships with this plugin and is required. Step 10 (using-new-technology) is **pluggable** — if not available, note it and continue; never block on an absent skill.
 
 1. **structuring-requirements** — turn the raw ask into a structured requirement.
 2. **exploring-project-context** — ground in the actual codebase. Verify every named symbol exists; if a ticket names a class/method, confirm it in code before trusting it.
@@ -29,7 +29,7 @@ Invoke the named sub-skill at each step by bare name. The step 9–10 review ski
 6. **exploring-solutions** — explore options in parallel; propose 2–3 with a recommendation and trade-offs. **GATE:** the user picks one solution before you plan it.
 7. **writing-vertical-plans** — vertical plan (per-layer NEW/CHANGED/REUSE/UNCHANGED tree) for the chosen solution.
 8. **writing-horizontal-plans** — horizontal plan: bottom-up TDD steps, one compiling commit per concern.
-9. **Test-review loop** — if writing-tests is available, invoke it to review the horizontal plan; apply its feedback; **repeat until it returns no findings.** Skip gracefully if absent.
+9. **Test-review loop (writing-tests)** — invoke writing-tests to review the horizontal plan's test steps against the test conventions (coverage, AAA, whole-object AssertJ, naming); apply feedback; **repeat until it returns no findings.** Bundled with this plugin.
 10. **New-tech-review loop** — if using-new-technology is available, invoke it to review the plan; apply feedback; **repeat until no findings.** Skip gracefully if absent.
 11. **Write the final plan** to a doc under `docs/` and **WAIT for explicit user approval. HARD GATE — do not proceed on silence or a vague "looks good"-adjacent reply; get an unambiguous go-ahead.**
 12. **Implement via TDD only after the go-ahead.** Per horizontal step: RED (failing test) → GREEN (make it pass) → format → commit. **Local commits only. Never push without an explicit user word.**
