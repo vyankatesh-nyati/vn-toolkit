@@ -1,0 +1,18 @@
+{
+  "name": "superpowers-vn",
+  "description": "Vyankatesh's personalised feature workflow: derive-from-code \u2192 brainstorm \u2192 vertical plan \u2192 horizontal plan \u2192 gated TDD implementation \u2192 review. Standalone (companion to superpowers).",
+  "version": "1.0.0",
+  "author": {
+    "name": "Vyankatesh Nyati",
+    "email": "vyankateshn@sahaj.ai"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "workflow",
+    "planning",
+    "vertical-plan",
+    "horizontal-plan",
+    "tdd"
+  ]
+}

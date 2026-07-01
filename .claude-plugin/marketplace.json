@@ -5,25 +5,22 @@
     "name": "Vyankatesh Nyati"
   },
   "metadata": {
-    "description": "Personal fork of superpowers (superpowers-vn): integrates writing-vertical-plans + writing-horizontal-plans into the writing-plans phase",
+    "description": "Vyankatesh's personalised feature workflow plugin",
     "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "superpowers",
-      "source": "./superpowers",
-      "description": "Core skills library (tuned): writing-plans phase requires a vertical plan (what/where) and a horizontal plan (bottom-up TDD steps)",
+      "name": "superpowers-vn",
+      "source": "./",
+      "description": "Personalised feature workflow: vertical + horizontal planning with gated TDD implementation",
       "version": "1.0.0",
       "license": "MIT",
-      "homepage": "https://github.com/obra/superpowers",
-      "repository": "https://github.com/obra/superpowers",
       "keywords": [
-        "skills",
-        "tdd",
+        "workflow",
         "planning",
         "vertical-plan",
         "horizontal-plan",
-        "workflows"
+        "tdd"
       ],
       "category": "workflow"
     }
