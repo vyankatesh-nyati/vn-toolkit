@@ -18,9 +18,11 @@ A gated, plan-first, TDD pipeline for building a feature end-to-end. Orchestrate
 | `writing-vertical-plans` | 7 | Per-layer NEW/CHANGED/REUSE/UNCHANGED map of what/where |
 | `writing-horizontal-plans` | 8 | Bottom-up TDD steps, one compiling commit per concern |
 | `writing-tests` | 9 | Review loop: test coverage, AAA, whole-object AssertJ, naming — loops until clean |
+| `using-new-technology` | 10 | Review loop: new tech warranted + correct per current docs + available + no pitfalls — loops until clean |
+| `questioning-legacy-patterns` | — | Companion lens: modern-vs-legacy, don't over-modernize (used by `using-new-technology`) |
 | `feature-workflow` | — | Orchestrator: runs steps 1–12 with hard gates |
 
-Step 9 (`writing-tests`) ships with this plugin and always runs. Step 10 (new-technology review) is pluggable — the workflow invokes `using-new-technology` if present and loops until clean, otherwise skips gracefully.
+Steps 9 (`writing-tests`) and 10 (`using-new-technology`) ship with this plugin and always run as review loops until clean.
 
 ## Commands
 
