@@ -1,0 +1,20 @@
+{
+  "name": "superpowers",
+  "description": "Core skills library for Claude Code (tuned fork): adds writing-vertical-plans + writing-horizontal-plans into the writing-plans phase",
+  "version": "6.1.0-tuned.1",
+  "author": {
+    "name": "Jesse Vincent",
+    "email": "jesse@fsck.com"
+  },
+  "homepage": "https://github.com/obra/superpowers",
+  "repository": "https://github.com/obra/superpowers",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows"
+  ]
+}
