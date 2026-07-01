@@ -1,23 +1,30 @@
 {
-  "name": "superpowers-tuned",
-  "id": "superpowers-tuned",
+  "name": "superpowers-vn",
+  "id": "superpowers-vn",
   "owner": {
     "name": "Vyankatesh Nyati"
   },
   "metadata": {
-    "description": "Personal fork of superpowers: integrates writing-vertical-plans + writing-horizontal-plans into the writing-plans phase",
-    "version": "6.1.0-tuned.1"
+    "description": "Personal fork of superpowers (superpowers-vn): integrates writing-vertical-plans + writing-horizontal-plans into the writing-plans phase",
+    "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "superpowers",
       "source": "./superpowers",
       "description": "Core skills library (tuned): writing-plans phase requires a vertical plan (what/where) and a horizontal plan (bottom-up TDD steps)",
-      "version": "6.1.0-tuned.1",
+      "version": "1.0.0",
       "license": "MIT",
       "homepage": "https://github.com/obra/superpowers",
       "repository": "https://github.com/obra/superpowers",
-      "keywords": ["skills", "tdd", "planning", "vertical-plan", "horizontal-plan", "workflows"],
+      "keywords": [
+        "skills",
+        "tdd",
+        "planning",
+        "vertical-plan",
+        "horizontal-plan",
+        "workflows"
+      ],
       "category": "workflow"
     }
   ]

@@ -1,7 +1,7 @@
 {
   "name": "superpowers",
   "description": "Core skills library for Claude Code (tuned fork): adds writing-vertical-plans + writing-horizontal-plans into the writing-plans phase",
-  "version": "6.1.0-tuned.1",
+  "version": "1.0.0",
   "author": {
     "name": "Jesse Vincent",
     "email": "jesse@fsck.com"
