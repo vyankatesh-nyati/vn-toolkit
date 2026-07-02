@@ -17,7 +17,7 @@ Tests must prove that a change does what it claims and protect it from regressio
 |---|------|---------------------------|
 | 1 | **Enough coverage** | Every scenario the new/changed code introduces has a test: happy path, edge cases, error/exception paths, boundary values. |
 | 2 | **No untested code** | No production code is added or changed without a test covering it. If you can't test it, that's a design smell — raise it. |
-| 3 | **AAA format** | Structure every test as Arrange → Act → Assert, separated by blank lines. One clear Act per test. |
+| 3 | **AAA format** | Structure every test as Arrange → Act → Assert, with a **single blank line between each phase** and **no `// Arrange` / `// Act` / `// Assert` label comments** — the blank lines mark the phases. One clear Act per test. |
 | 4 | **Assert the whole object** | Compare the full result, not cherry-picked fields. Use AssertJ `usingRecursiveComparison()` for objects. |
 | 5 | **AssertJ** | Use AssertJ (`assertThat(...)`). Do not use JUnit `assertEquals`/`assertTrue` or Hamcrest. |
 | 6 | **Match existing naming** | Read a sibling test in the same package/file FIRST, then follow its naming convention exactly. Do not invent a new style. |
@@ -28,14 +28,11 @@ Tests must prove that a change does what it claims and protect it from regressio
 ```java
 @Test
 void appliesLoyaltyDiscountForGoldCustomers() {
-    // Arrange
     Customer customer = aCustomer().withTier(GOLD).build();
     Order order = anOrder().withSubtotal(money("100.00")).forCustomer(customer).build();
 
-    // Act
     Receipt receipt = checkout.process(order);
 
-    // Assert
     Receipt expected = aReceipt()
             .withSubtotal(money("100.00"))
             .withDiscount(money("10.00"))
@@ -47,7 +44,7 @@ void appliesLoyaltyDiscountForGoldCustomers() {
 }
 ```
 
-Why this shape: the three blocks are visually distinct (rule 3); the assertion compares the entire `Receipt` so an unexpected change to *any* field fails the test (rules 4); it reads top-to-bottom as "for a gold customer's $100 order, the receipt is $90 after a $10 discount" (rule 7).
+Why this shape: the three phases are separated by a single blank line with no label comments (rule 3); the assertion compares the entire `Receipt` so an unexpected change to *any* field fails the test (rules 4); it reads top-to-bottom as "for a gold customer's $100 order, the receipt is $90 after a $10 discount" (rule 7).
 
 **When recursive comparison needs tuning:** ignore only volatile fields explicitly —
 `assertThat(actual).usingRecursiveComparison().ignoringFields("id", "createdAt").isEqualTo(expected)`. Ignore the field, never drop to asserting one field instead.
@@ -70,4 +67,5 @@ Do NOT consider the change done until:
 | Inventing a test-name style | Open a sibling test, mirror its naming. |
 | `assertEquals(expected, actual)` | `assertThat(actual).isEqualTo(expected)`. |
 | Multiple Acts in one test | Split into separate tests, one behavior each. |
+| `// Arrange` / `// Act` / `// Assert` label comments | Delete them; separate the phases with a single blank line instead. |
 | Magic literals (`assertThat(x).isEqualTo(42)`) | Bind to a named value/builder that explains intent. |
