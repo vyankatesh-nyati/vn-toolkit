@@ -1,102 +1,103 @@
 ---
 name: writing-horizontal-plans
-description: Produces a horizontal plan — the ordered, test-first build steps that sequence a multi-layer change into one compiling commit per concern. Use when the user asks for a "horizontal plan", "TDD steps", "implementation/execution order", "step-by-step plan", or how to sequence a change into commits. Takes a vertical plan (writing-vertical-plans) as its input.
+description: Produces a horizontal plan — ordered, test-first build steps that spell out EVERY code change in full (the exact failing test AND the exact implementation), one compiling commit per step. Use when the user asks for a "horizontal plan", "TDD steps", "implementation/execution order", "detailed plan with code", "step-by-step plan", or how to sequence a change into commits. Takes a vertical plan (writing-vertical-plans) as its input.
 ---
 
 # Writing Horizontal Plans
 
 ## Overview
 
-A **horizontal plan** sequences a change into ordered, test-first build steps that cut across the layers. It captures the *order of execution* — what to build first, as RED→GREEN→commit steps, one compiling concern at a time.
+A **horizontal plan** turns a vertical plan into ordered, test-first build steps that spell out **every code change in full** — the actual failing test and the actual implementation for each step, in the order you build them.
 
-**Core principle:** each step is a full TDD micro-cycle ending in a commit that compiles on its own. The plan is executable: exact test cases, run command, and commit message per step.
+**Core principle:** NO placeholders. If a step changes code, the step SHOWS the code — exact file paths, the complete test, the complete implementation, the run command, and the expected output. An engineer with zero prior context executes it verbatim.
 
-**Scope:** this skill covers ONLY the horizontal (order) plan. For the WHAT/WHERE surface-area map it sequences, use the **writing-vertical-plans** skill — the two are companions (vertical = structure; horizontal = order).
-
-**Input:** a horizontal plan is derived from a vertical plan's layers. If none exists yet, build one first (writing-vertical-plans), then order those layers into steps.
+**Scope:** companion to writing-vertical-plans. The vertical plan is the high-level map of WHAT changes and WHERE; the horizontal plan is the DETAILED, code-complete execution of it, in order. Derive the steps from the vertical plan's layers.
 
 ## When to use
 
-- After a vertical plan exists and you need the build order.
-- The user says "horizontal plan", "TDD steps", "execution/implementation order", "step-by-step", "how do I sequence this".
+- After a vertical plan exists and you need the detailed build order with code.
+- The user says "horizontal plan", "TDD steps", "detailed / step-by-step plan", "give me the code changes", "how do I sequence this".
 
-**When NOT to use:** you still need the surface-area map (use writing-vertical-plans); or a one-commit change with no ordering to decide.
+**When NOT to use:** you still need the surface-area map (writing-vertical-plans); or a one-line change with nothing to sequence.
 
-## How to build the horizontal plan
+## How to build
 
-**Order bottom-up** so each commit compiles and the next builds on it: the callee before its caller (interface/service before the aspect/controller that calls it; repository method before the service that uses it).
+**Order bottom-up** so each commit compiles and the next builds on it: callee before caller (interface/repo method before the service that uses it; service before the controller/aspect that calls it).
 
-Each step is one TDD micro-cycle:
+Each step is one complete TDD micro-cycle. Show all of it:
 
 ```
 Step N — <one concern>
-  RED   : <test file> — <named cases: happy + edges + guard/fallback + decision-branch edge>;  run → fails
-  GREEN : <prod change>;                                                                        run → passes
-  format/lint (e.g. spotlessApply);  commit "<id> | <message>"
+  Files: Create <path> | Modify <path>:<lines> | Test <path>
+  RED — the failing test (COMPLETE code):
+        <full test method(s): happy + edges + guard/fallback + decision-branch edge>
+        Run: <exact cmd>   Expect: FAIL (<why>)
+  GREEN — the implementation (COMPLETE code):
+        <the actual production change — real code, not a description>
+        Run: <exact cmd>   Expect: PASS
+  <format/lint cmd>;  commit "<id> | <message>"
 ```
 
-Rules:
-- **One concern per step, one commit.** Each commit compiles standalone (no step leaves the tree broken).
-- **Name the test cases**, don't write "add tests" — list happy path, edge cases, the guard/fallback (empty/not-found), and any decision-branch edge (e.g. the mixed-type case that pins a rule).
-- Give the **exact run command** and **commit message** so the step is executable.
-- Build on existing commits; don't rewrite history unless asked.
+## No placeholders — every code step shows the code
+
+These are plan failures — never write them:
+- "TBD", "add error handling", "handle edge cases", "similar to Step N".
+- Describing a change in prose without the code block.
+- A test step without the actual test code; an impl step without the actual code.
+- Referencing a method/type not shown in this or an earlier step.
+
+If a step changes code, the code is IN the step. Repeat code rather than cross-referencing — the engineer may read steps out of order.
 
 ## Example
 
 ```
-Horizontal Plan (TDD) — new commits, bottom-up
+Step 1 — CampaignLineLockService.validateNotLockedByLineIds + selection
+  Files: Modify core/.../service/CampaignLineLockService.java
+         Test  core/.../service/CampaignLineLockServiceTest.java
+  RED:
+    @Test void routesToInternationalWhenAnyLineIsInternational() {
+        when(campaignLineRepository.findAllByIdIn(LINE_IDS))
+            .thenReturn(List.of(bookedFinanceApprovedLine("l1")));
+        campaignLineLockService.validateNotLockedByLineIds(LINE_IDS);
+        verify(internationalStrategy).validateNotLocked(LINE_IDS);
+    }
+    @Test void skipsWhenNoLineIds() {
+        campaignLineLockService.validateNotLockedByLineIds(List.of("", " "));
+        verifyNoInteractions(campaignLineRepository, internationalStrategy, domesticStrategy);
+    }
+    Run: ./gradlew :core:unitTest --tests "*CampaignLineLockServiceTest"   Expect: FAIL (method undefined)
+  GREEN:
+    public void validateNotLockedByLineIds(List<String> lineIds) {
+        List<String> ids = lineIds.stream()
+                .filter(id -> id != null && !id.isBlank()).distinct().toList();
+        if (ids.isEmpty()) return;
+        List<BaseCampaignLine> lines = campaignLineRepository.findAllByIdIn(ids);
+        if (lines.isEmpty()) return;
+        (lines.stream().anyMatch(InternationalCampaignLine.class::isInstance)
+                ? internationalStrategy : domesticStrategy).validateNotLocked(ids);
+    }
+    Run: ./gradlew :core:unitTest --tests "*CampaignLineLockServiceTest"   Expect: PASS
+  ./gradlew spotlessApply;  commit "PLATO-12436 | region-by-line-type lock check"
 
-Step 1 — service.checkByIds + selection
-  RED   : CampaignLineLockServiceTest — routes intl when any line intl;
-          routes domestic otherwise; mixed-type ⇒ intl (pins anyMatch);
-          empty ids ⇒ no fetch; not-found ⇒ no-op
-          → ./gradlew :core:unitTest --tests "*CampaignLineLockServiceTest"  (RED)
-  GREEN : add checkByIds + inject repo  (GREEN)
-  spotlessApply;  commit "TICKET | region-by-line-type line-lock check"
-
-Step 2 — aspect branch  (builds on Step 1)
-  RED   : LockAspectTest — no-campaignId method does NOT throw + delegates
-          to checkByIds; campaignId-present still delegates to check(id,ids)
-          → ./gradlew :core:unitTest --tests "*LockAspectTest"  (RED)
-  GREEN : extractCampaignId → OptionalInt; ifPresentOrElse branch  (GREEN)
-  spotlessApply;  commit "TICKET | derive campaignId-less checks from lineIds"
-
-Step 3 — intTest (end-to-end)
-  RED   : locked line via a no-campaignId endpoint ⇒ 400 <ERROR_CODE>;
-          unlocked ⇒ not 400 (regression guard)
-          → ./gradlew :core:intTest --tests "*LockControllerTest"  (RED)
-  GREEN : (covered by Steps 1–2)
-  commit "TICKET | intTest: campaignId-less endpoints enforce lock"
-```
-
-## Template
-
-```
-Horizontal Plan (TDD) — <goal>
-Step 1 — <concern>            (bottom-most layer first)
-  RED  : <test + named cases + run cmd>
-  GREEN: <prod change + run cmd>
-  <format>;  commit "<id> | <msg>"
-Step 2 — <concern>  (builds on Step 1)
-  ...
+Step 2 — aspect branch (builds on Step 1) — <full RED + GREEN code> ...
 ```
 
 ## Common mistakes
 
 | Mistake | Fix |
 |---|---|
-| Steps ordered top-down (caller before callee) | Order bottom-up so each commit compiles. |
-| A step spanning several concerns | Split — one concern, one compiling commit per step. |
-| "Add tests" with no cases | Name cases: happy + edges + guard/fallback + decision-branch edge. |
-| No run command or commit message | Include both — the step must be executable as written. |
-| GREEN before RED (implement then test) | Write the failing test first each step. |
-| A commit that leaves the tree not compiling | Reorder or fold the dependency into the same step. |
-| Re-deriving what/where here | That's the vertical plan (writing-vertical-plans); reference it, don't repeat it. |
+| `GREEN: <prod change>` as a one-liner | Show the ACTUAL implementation code in the step |
+| "Add tests" / unnamed cases | Full test code: happy + edges + guard + decision-branch |
+| Prose describing a change | Replace it with the code block |
+| Steps ordered top-down (caller first) | Bottom-up so each commit compiles |
+| A step spanning several concerns | One concern, one compiling commit |
+| "Same as Step N" for code | Repeat the code; steps may be read out of order |
+| No run command / expected output | Include exact cmd + expected FAIL/PASS |
 
 ## Checklist
 
 - [ ] Steps ordered bottom-up; every commit compiles standalone
 - [ ] One concern per step, one commit
-- [ ] Each step: RED (named cases incl edges + guard) before GREEN
-- [ ] Exact run command + commit message per step
-- [ ] Derived from a vertical plan's layers (writing-vertical-plans), not re-deriving what/where
+- [ ] Every code step shows COMPLETE code (test + implementation) — no placeholders
+- [ ] Exact file paths, run commands, and expected FAIL/PASS per step
+- [ ] Derived from the vertical plan's layers (writing-vertical-plans)

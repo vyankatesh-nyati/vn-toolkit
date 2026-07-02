@@ -28,7 +28,7 @@ Invoke the named sub-skill at each step by bare name. Steps 9 (writing-tests) an
 5. **writing-acceptance-criteria** — Given/When/Then plus edge cases. Write the AC doc under `docs/` (see Docs rule).
 6. **exploring-solutions** — explore options in parallel; propose 2–3 with a recommendation and trade-offs. **GATE:** the user picks one solution before you plan it.
 7. **writing-vertical-plans** — vertical plan (per-layer NEW/CHANGED/REUSE/UNCHANGED tree) for the chosen solution.
-8. **writing-horizontal-plans** — horizontal plan: bottom-up TDD steps, one compiling commit per concern.
+8. **writing-horizontal-plans** — horizontal plan: bottom-up TDD steps with the COMPLETE code (test + implementation) per step, one compiling commit per concern.
 9. **Test-review loop (writing-tests)** — invoke writing-tests to review the horizontal plan's test steps against the test conventions (coverage, AAA, whole-object AssertJ, naming); apply feedback; **repeat until it returns no findings.** Bundled with this plugin.
 10. **New-tech-review loop (using-new-technology)** — invoke using-new-technology to review any new library/API/framework-feature/version in the plan (warranted? correct per current docs? available? pitfalls?); apply feedback; **repeat until no findings.** Bundled with this plugin.
 11. **Write the final plan** to a doc under `docs/` and **WAIT for explicit user approval. HARD GATE — do not proceed on silence or a vague "looks good"-adjacent reply; get an unambiguous go-ahead.**
