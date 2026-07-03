@@ -37,6 +37,7 @@ a nicer name).
 | `ac.md` | phase 3 |
 | `solutions.md` | phase 4 |
 | `vertical-plan.md`, `horizontal-plan.md`, `horizontal-plan.json` | phase 5 |
+| `review-findings.md` | phase 5, only if the review loop left open findings |
 | `verify.md` | phase 6 |
 | `mr.md` | phase 7 |
 
