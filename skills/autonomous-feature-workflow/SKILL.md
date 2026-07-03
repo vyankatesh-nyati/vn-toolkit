@@ -70,8 +70,11 @@ Later-phase files (plans, verify, mr) are added by the phase that owns them.
    [<evidence>]`, then an `Assumptions` list if the reader returned any.
 4. Append each `clarifications[]` entry to `DECISIONS.md` in the decision-log
    format: Question it replaces = question; Options considered = options;
-   Chosen / Why / Confidence / Reversibility as returned; phase tag 2; risk
-   from the formula. Number D<N> continuing from the last entry.
+   Chosen / Confidence / Reversibility as returned; Why = the returned why
+   with ` (source: <source>)` appended; phase tag 2; risk from the formula.
+   Count first: the number of new entries MUST equal the length of
+   `clarifications` — collapsing or skipping entries is a contract violation.
+   Number D<N> continuing from the last entry.
 5. Update `state.md` (phases 1-2 DONE); continue to phase 3.
 
 ## Phases 3-4 — decide (`decide.js`)
@@ -86,7 +89,11 @@ Later-phase files (plans, verify, mr) are added by the phase that owns them.
 4. Write `solutions.md`: every candidate with its four scores, details, and
    assumptions; then `## Judge` with the pick, why, confidence, and each
    rejected candidate's reason.
-5. Append decisions to `DECISIONS.md`: one entry for EVERY item in
+5. Validate `judge.pick`: it MUST exactly match one returned candidate name.
+   No match → the decide run is invalid; re-invoke decide.js once; if it
+   still mismatches, record the run as failed in `state.md` and STOP — never
+   proceed on an invented pick.
+6. Append decisions to `DECISIONS.md`: one entry for EVERY item in
    `acAssumptions` — count them first; the number of new assumption entries
    MUST equal the length of `acAssumptions`, and collapsing similar
    assumptions into one entry is a contract violation (Question it replaces =
@@ -95,10 +102,11 @@ Later-phase files (plans, verify, mr) are added by the phase that owns them.
    solution pick (Options considered = all candidate names; Chosen = pick;
    Why = judge's why; Confidence = judge's confidence; Reversibility from
    the pick's nature; risk strictly from the formula).
-6. If judge confidence is L: record `TOP REVIEW ITEM: solution pick (LOW
+   Phase tags: 3 on each assumption entry, 4 on the pick entry.
+7. If judge confidence is L: record `TOP REVIEW ITEM: solution pick (LOW
    confidence)` in `state.md`, and apply the conservative bias — every later
    sub-decision prefers the most conservative variant.
-7. Update `state.md` (phases 3-4 DONE); continue to phase 5.
+8. Update `state.md` (phases 3-4 DONE); continue to phase 5.
 
 ## Phases 1-7
 

@@ -139,6 +139,10 @@ const scored = gen.candidates
   .map((c, i) => ({ name: c.name, summary: c.summary, score: scores[i] }))
   .filter(c => c.score)
 
+if (!scored.length) {
+  throw new Error('decide: all candidate scorers failed')
+}
+
 const judge = await agent(
   `You are the judge for phase 4 of an autonomous feature pipeline. Pick exactly ONE candidate using these criteria IN ORDER: (1) reuse-first - prefer extending what already exists; (2) lowest irreversibility; (3) lowest risk; (4) lowest effort. State your confidence H/M/L in the pick and give each rejected candidate a one-line reason. Do not invent a new option.
 
