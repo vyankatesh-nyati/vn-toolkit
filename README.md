@@ -21,7 +21,7 @@ A gated, plan-first, TDD pipeline for building a feature end-to-end. Orchestrate
 | `using-new-technology` | 10 | Review loop: new tech warranted + correct per current docs + available + no pitfalls — loops until clean |
 | `questioning-legacy-patterns` | — | Companion lens: modern-vs-legacy, don't over-modernize (used by `using-new-technology`) |
 | `feature-workflow` | — | Orchestrator: runs steps 1–12 with hard gates |
-| `autonomous-feature-workflow` | — | Experimental: gateless pipeline — phase-0 pre-flight aborts on blocking ambiguity, else decides autonomously and ends in a draft MR |
+| `autonomous-feature-workflow` | — | Experimental: gateless pipeline — phases 0-4 live (pre-flight, context, self-clarification, AC, solution judge); planning/implementation phases ship next |
 
 Steps 9 (`writing-tests`) and 10 (`using-new-technology`) ship with this plugin and always run as review loops until clean.
 
@@ -30,7 +30,7 @@ Steps 9 (`writing-tests`) and 10 (`using-new-technology`) ship with this plugin 
 | Command | Description |
 |---|---|
 | `/feature <ask>` | Launch the gated end-to-end feature workflow |
-| `/feature-auto <ask>` | Experimental: run the pipeline autonomously; only stop is a phase-0 abort; ends in a draft MR |
+| `/feature-auto <ask>` | Experimental: run the pipeline autonomously (phases 0-4); only stop is a phase-0 abort |
 
 ## Cross-cutting rules
 
