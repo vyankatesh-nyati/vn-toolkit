@@ -41,7 +41,10 @@ const CLASSIFICATION_SCHEMA = {
   },
 }
 
-const input = typeof args === 'string' ? JSON.parse(args) : args
+let input = args
+if (typeof input === 'string') {
+  try { input = JSON.parse(input) } catch { input = { requirement: input } }
+}
 const requirement = input && input.requirement
 if (!requirement || !String(requirement).trim()) {
   throw new Error('preflight: args.requirement missing or empty')
@@ -79,6 +82,7 @@ unknown give the 2-4 concrete options a human would have been offered. Do not as
 the user anything.
 
 Goal: ${brief.goal}
+Constraints: ${brief.constraints.join('; ')}
 In scope: ${brief.inScope.join('; ')}
 Unknowns:
 ${brief.unknowns.map((u, i) => `${i + 1}. ${u}`).join('\n')}`,
