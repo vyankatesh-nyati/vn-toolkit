@@ -36,8 +36,11 @@ a nicer name).
 | `context-map.md` | phases 1-2 |
 | `ac.md` | phase 3 |
 | `solutions.md` | phase 4 |
+| `vertical-plan.md`, `horizontal-plan.md`, `horizontal-plan.json` | phase 5 |
+| `verify.md` | phase 6 |
+| `mr.md` | phase 7 |
 
-Later-phase files (plans, verify, mr) are added by the phase that owns them.
+All later-phase files are now enumerated above.
 
 ## Phase 0 — pre-flight
 
@@ -107,6 +110,61 @@ Later-phase files (plans, verify, mr) are added by the phase that owns them.
    confidence)` in `state.md`, and apply the conservative bias — every later
    sub-decision prefers the most conservative variant.
 8. Update `state.md` (phases 3-4 DONE); continue to phase 5.
+
+## Phase 5 — plan and review (`plan-and-review.js`)
+
+1. Script-existence check per Phases 1-7 rules.
+2. Invoke: scriptPath = `<plugin workflows dir>/plan-and-review.js`, args =
+   `{ requirement, briefPath, contextMapPath, acPath: docs/scratch/<slug>/ac.md,
+   solutionsPath: docs/scratch/<slug>/solutions.md, repoRoot }`.
+3. Write `vertical-plan.md` = the returned `verticalPlan`. Write
+   `horizontal-plan.json` = the returned `steps` array as JSON, exactly as
+   returned (this is phase 6's input — do not edit it). Write
+   `horizontal-plan.md` = a human rendering: per step a `## <id> — <title>`
+   section with files, RED code block, run+expectFail, GREEN code block,
+   run+expectPass, commit message, dependsOn.
+4. If `openFindings` is non-empty, write them into `review-findings.md` and
+   list them as unresolved items for the MR. Record `reviewIterations` in
+   `state.md`.
+5. Update `state.md` (phase 5 DONE); continue.
+
+## Phase 6 — implement (`implement.js`)
+
+1. Script-existence check per Phases 1-7 rules.
+2. Read `horizontal-plan.json`; invoke: scriptPath =
+   `<plugin workflows dir>/implement.js`, args = `{ steps: <the parsed array>,
+   repoRoot, branch: feature/<slug> }`.
+3. Write `verify.md`: per-step results (id, status, commit sha, test
+   evidence, notes), then the verify block (suitePassed, evidence, concerns).
+4. Any non-green step or verify concern is an unresolved item for the MR.
+   If NO step reached green, record the run as failed in `state.md` and STOP
+   — there is nothing to deliver.
+5. Update `state.md` (phase 6 DONE); continue.
+
+## Phase 7 — deliver (orchestrated inline)
+
+1. Assemble `mr.md` in exactly this order: (1) what was built, 3-6 lines,
+   plus how to try it; (2) `## Decisions taken on your behalf` — every
+   DECISIONS.md entry, ordered risk H then M then L; (3) `## Assumptions` —
+   every decision whose Why carries `(source: conservative-default)` plus the
+   AC assumptions; (4) `## Unresolved items` — capped review findings,
+   failed/skipped steps, verify concerns (omit section if none); (5)
+   collapsible `<details>` sections for the AC, vertical plan, and horizontal
+   plan; (6) test & verify evidence from `verify.md`; (7) footer: how to
+   amend (`/feature-amend <slug> "<feedback>"`).
+2. `git -C <repo> remote get-url origin` — no remote? Report "no remote —
+   draft-MR description ready at docs/scratch/<slug>/mr.md", update
+   `state.md` (phase 7 DONE, MR: none — no remote), and STOP gracefully.
+3. Push ONLY the feature branch: `git push -u origin feature/<slug>`. Never
+   main. Never force. This push is authorized solely by the /feature-auto
+   invocation.
+4. `glab auth status` — not authenticated or glab missing? Report the mr.md
+   path as in step 2 and STOP gracefully. Otherwise:
+   `glab mr create --draft --title "feature/<slug>: <brief goal>"
+   --description-file docs/scratch/<slug>/mr.md --source-branch
+   feature/<slug>`.
+5. Update `state.md` (phase 7 DONE, MR: <url>). Report to the user: the MR
+   url and the top-3 highest-risk decisions inline.
 
 ## Phases 1-7
 
