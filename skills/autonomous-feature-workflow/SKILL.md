@@ -33,9 +33,11 @@ a nicer name).
 | `brief.md` | phase 0 |
 | `QUESTIONS.md` | phase 0, abort path only |
 | `DECISIONS.md` | phases 2+ (format below) |
+| `context-map.md` | phases 1-2 |
+| `ac.md` | phase 3 |
+| `solutions.md` | phase 4 |
 
-Later-phase files (context-map, ac, plans, verify, mr) are added by the phase
-that owns them.
+Later-phase files (plans, verify, mr) are added by the phase that owns them.
 
 ## Phase 0 — pre-flight
 
@@ -57,6 +59,47 @@ that owns them.
    classification + options), create branch `feature/<slug>`, write `state.md`
    with phase 0 = DONE, continue to phase 1.
 
+## Phases 1-2 — understand (`understand.js`)
+
+1. Script-existence check per Phases 1-7 rules.
+2. Invoke the Workflow tool: scriptPath = `<plugin workflows dir>/understand.js`,
+   args = `{ requirement: <text>, briefPath: docs/scratch/<slug>/brief.md,
+   repoRoot: <target repo root> }`. Wait for the result.
+3. Write `context-map.md`: one `##` section per reader key (entry-points,
+   sibling-pattern, tests, history) — each finding as `**<title>** — <detail>
+   [<evidence>]`, then an `Assumptions` list if the reader returned any.
+4. Append each `clarifications[]` entry to `DECISIONS.md` in the decision-log
+   format: Question it replaces = question; Options considered = options;
+   Chosen / Why / Confidence / Reversibility as returned; phase tag 2; risk
+   from the formula. Number D<N> continuing from the last entry.
+5. Update `state.md` (phases 1-2 DONE); continue to phase 3.
+
+## Phases 3-4 — decide (`decide.js`)
+
+1. Script-existence check per Phases 1-7 rules.
+2. Invoke: scriptPath = `<plugin workflows dir>/decide.js`, args =
+   `{ requirement, briefPath, contextMapPath: docs/scratch/<slug>/context-map.md,
+   repoRoot }`. Wait for the result.
+3. Write `ac.md` (exactly this filename — do not create any other AC
+   document) = the returned `ac` markdown; if `acOpenFindings` is non-empty,
+   append them under `## Unresolved review findings` (each: issue → fix).
+4. Write `solutions.md`: every candidate with its four scores, details, and
+   assumptions; then `## Judge` with the pick, why, confidence, and each
+   rejected candidate's reason.
+5. Append decisions to `DECISIONS.md`: one entry for EVERY item in
+   `acAssumptions` — count them first; the number of new assumption entries
+   MUST equal the length of `acAssumptions`, and collapsing similar
+   assumptions into one entry is a contract violation (Question it replaces =
+   the assumption restated as the question it answers; confidence M unless
+   the assumption text states evidence) — plus exactly ONE entry for the
+   solution pick (Options considered = all candidate names; Chosen = pick;
+   Why = judge's why; Confidence = judge's confidence; Reversibility from
+   the pick's nature; risk strictly from the formula).
+6. If judge confidence is L: record `TOP REVIEW ITEM: solution pick (LOW
+   confidence)` in `state.md`, and apply the conservative bias — every later
+   sub-decision prefers the most conservative variant.
+7. Update `state.md` (phases 3-4 DONE); continue to phase 5.
+
 ## Phases 1-7
 
 **The orchestrator NEVER executes a phase inline.** Phases 1-6 run ONLY via
@@ -67,7 +110,7 @@ production code — is a contract violation even when the work looks easy and
 you are confident you'd do it well.
 
 Before each phase, check that its script exists
-(`ls <plugin workflows dir>/<script>`). Missing script → the pipeline ends
+(`ls <plugin workflows dir>/<script>`, where `<plugin workflows dir>` = `<this skill's base directory>/../../workflows/` — the same resolution phase 0 uses). Missing script → the pipeline ends
 here BY DESIGN (phases ship incrementally): stop, update `state.md`, report
 the last completed phase. Do not substitute yourself for the missing script.
 
@@ -110,3 +153,5 @@ highest-risk first.
 - Branch only; draft MR only; never main; never force-push.
 - `docs/scratch/` stays uncommitted.
 - Everything scratch; the MR description is the durable review package.
+- Write into `docs/scratch/<slug>/` only the files the phases name — never a
+  variant filename or an additional document.
