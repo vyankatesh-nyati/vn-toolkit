@@ -61,7 +61,7 @@ assume to write a line goes into "assumptions".
 
 Raw ask:
 ${requirement}`,
-  { schema: BRIEF_SCHEMA, label: 'structure-brief', phase: 'Structure' },
+  { schema: BRIEF_SCHEMA, label: 'structure-brief', phase: 'Structure', model: 'sonnet' },
 )
 
 phase('Classify')
@@ -86,7 +86,7 @@ Constraints: ${brief.constraints.join('; ')}
 In scope: ${brief.inScope.join('; ')}
 Unknowns:
 ${brief.unknowns.map((u, i) => `${i + 1}. ${u}`).join('\n')}`,
-    { schema: CLASSIFICATION_SCHEMA, label: 'classify-unknowns', phase: 'Classify' },
+    { schema: CLASSIFICATION_SCHEMA, label: 'classify-unknowns', phase: 'Classify', model: 'sonnet' },
   )
   classifications = result.classifications
 }

@@ -54,7 +54,7 @@ Run: ${step.runCommand}   Expect PASS: ${step.expectPass}
 
 Execute RED first and confirm it fails for the stated reason, then GREEN and confirm it passes. If the plan's code has a small defect (typo, wrong path, missing import), fix it minimally and record that in notes. Then stage ONLY this step's files and commit with exactly this message: ${step.commitMessage}
 Return: status green|failed; commitSha (the new commit's short sha, or "" if failed); testEvidence (the key RED and GREEN output lines); notes (deviations, or "").`,
-      { schema: STEP_RESULT_SCHEMA, label: `step:${step.id}${attempt > 1 ? `:retry${attempt}` : ''}`, phase: 'Implement' },
+      { schema: STEP_RESULT_SCHEMA, label: `step:${step.id}${attempt > 1 ? `:retry${attempt}` : ''}`, phase: 'Implement', model: 'haiku', effort: 'low' },
     )
     if (result && result.status === 'green') break
   }
@@ -81,7 +81,7 @@ const VERIFY_SCHEMA = {
 const verify = await agent(
   `Verification pass in ${repoRoot} on branch ${branch}. You may run tests and read anything; NEVER commit, NEVER push, NEVER edit files.
 Run the full test suite. Where the project offers a runnable surface (script, REPL invocation, CLI), also drive the newly implemented behavior end-to-end and observe the real result — not just test output. Return suitePassed, the key evidence lines, and concerns ([] if none).`,
-  { schema: VERIFY_SCHEMA, label: 'verify', phase: 'Verify' },
+  { schema: VERIFY_SCHEMA, label: 'verify', phase: 'Verify', model: 'haiku', effort: 'low' },
 )
 
 log(`implement: ${results.filter(r => r.status === 'green').length}/${steps.length} steps green; suitePassed=${verify.suitePassed}`)

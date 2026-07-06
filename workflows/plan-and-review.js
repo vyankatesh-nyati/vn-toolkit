@@ -30,7 +30,7 @@ Repo: ${repoRoot}. Read ${briefPath}, ${contextMapPath}, ${acPath}, and ${soluti
 Requirement: ${requirement}
 
 Produce a vertical plan in the vn-toolkit writing-vertical-plans shape: a tree ordered entry-point to data, every node tagged [NEW|CHANGED|REUSE|UNCHANGED] with the concrete change (from -> to / add X), box-drawing glyphs, the key design decision stated as one rule line at the end, zero rationale prose. Every symbol you name must exist in the repo (verify by reading) or be explicitly tagged NEW.`,
-  { schema: VERTICAL_SCHEMA, label: 'vertical-plan', phase: 'Vertical' },
+  { schema: VERTICAL_SCHEMA, label: 'vertical-plan', phase: 'Vertical', model: 'sonnet' },
 )
 
 const STEP_SCHEMA = {
@@ -71,7 +71,7 @@ ${vertical.planMarkdown}
 
 For each step return: id (s1, s2, ...); title (the one concern); files (every file the step creates or modifies, repo-relative); redCode (the complete failing test code to add — for each file block the FIRST line is exactly "FILE: <repo-relative path>"); greenCode (the complete implementation change, same FILE convention; empty string if the step adds only tests for existing behavior); runCommand (exact command from the repo root); expectFail (why RED fails); expectPass (what GREEN proves); commitMessage (one line); dependsOn (ids this step builds on; [] if none).
 An engineer with zero context executes each step verbatim — repeat code rather than referencing another step.`,
-  { schema: STEP_SCHEMA, label: 'horizontal-plan', phase: 'Horizontal' },
+  { schema: STEP_SCHEMA, label: 'horizontal-plan', phase: 'Horizontal', model: 'sonnet' },
 )
 
 phase('Review')
@@ -100,13 +100,13 @@ for (let i = 1; i <= 5; i++) {
       `Review the test code inside this horizontal plan against the vn-toolkit writing-tests conventions: every AC scenario covered (happy, edges, errors, boundaries); AAA phases separated by a single blank line with NO Arrange/Act/Assert label comments; whole-object assertions where the language supports them; test names consistent with the repo's convention (repo: ${repoRoot} — read a sibling test if one exists, else require internal consistency); no magic literals. Findings reference stepId. Empty findings = pass.
 
 ${planJson}`,
-      { schema: FINDINGS_SCHEMA, label: `review-tests:${i}`, phase: 'Review' },
+      { schema: FINDINGS_SCHEMA, label: `review-tests:${i}`, phase: 'Review', model: 'sonnet' },
     ),
     () => agent(
       `Review this horizontal plan for any technology NEW to this repo (repo: ${repoRoot}): a library, framework feature, API, or version not already used there. For each new item check: warranted (not novelty — prefer what the repo already uses)? correct per CURRENT docs (verify, never from memory)? actually available in the repo's stack? known pitfalls? If the plan introduces nothing new, return empty findings. Findings reference stepId.
 
 ${planJson}`,
-      { schema: FINDINGS_SCHEMA, label: `review-tech:${i}`, phase: 'Review' },
+      { schema: FINDINGS_SCHEMA, label: `review-tech:${i}`, phase: 'Review', model: 'sonnet' },
     ),
   ])
   openFindings = reviews.filter(Boolean).flatMap(r => r.findings)
@@ -118,7 +118,7 @@ Repo: ${repoRoot}. Findings: ${JSON.stringify(openFindings)}
 
 Current steps:
 ${planJson}`,
-    { schema: STEP_SCHEMA, label: `fix-plan:${i}`, phase: 'Review' },
+    { schema: STEP_SCHEMA, label: `fix-plan:${i}`, phase: 'Review', model: 'haiku', effort: 'low' },
   )
 }
 

@@ -46,7 +46,7 @@ Repo: ${repoRoot}. Read ${briefPath} and ${contextMapPath} first.
 Requirement: ${requirement}
 
 Produce a complete AC document as markdown with sections: ## Happy path, ## Alternate paths, ## Edge cases (empty/boundary values, concurrency/idempotency, permission/tenancy variants where the code branches on them, failure/rollback, states the code allows but the feature cannot reach), ## Assumptions (confirm). One Given/When/Then per behavior, a single observable outcome each, grounded in how the code actually behaves — verify every symbol you name exists. Outcomes you cannot derive from code go under Assumptions, never guessed silently. Return the document and the assumptions list.`,
-  { schema: AC_SCHEMA, label: 'write-ac', phase: 'AC' },
+  { schema: AC_SCHEMA, label: 'write-ac', phase: 'AC', model: 'sonnet' },
 )
 
 let acFindings = []
@@ -55,7 +55,7 @@ for (let i = 1; i <= 3; i++) {
     `Adversarially review these acceptance criteria against the brief (${briefPath}), the context map (${contextMapPath}), and the actual code in ${repoRoot}. Hunt for: scenarios contradicting real code behavior, missing edge-case categories, compound Then clauses, implementation details posing as behavior, symbols that do not exist. Empty findings = pass.
 
 ${ac.acMarkdown}`,
-    { schema: AC_REVIEW_SCHEMA, label: `review-ac:${i}`, phase: 'AC' },
+    { schema: AC_REVIEW_SCHEMA, label: `review-ac:${i}`, phase: 'AC', model: 'sonnet' },
   )
   acFindings = review.findings
   if (!acFindings.length) break
@@ -67,7 +67,7 @@ Findings: ${JSON.stringify(acFindings)}
 
 Current AC:
 ${ac.acMarkdown}`,
-    { schema: AC_SCHEMA, label: `fix-ac:${i}`, phase: 'AC' },
+    { schema: AC_SCHEMA, label: `fix-ac:${i}`, phase: 'AC', model: 'haiku', effort: 'low' },
   )
 }
 
@@ -122,7 +122,7 @@ const gen = await agent(
 
 Acceptance criteria:
 ${ac.acMarkdown}`,
-  { schema: CANDIDATES_SCHEMA, label: 'candidates', phase: 'Solutions' },
+  { schema: CANDIDATES_SCHEMA, label: 'candidates', phase: 'Solutions', model: 'sonnet' },
 )
 
 const scores = await parallel(gen.candidates.map(c => () => agent(
@@ -132,7 +132,7 @@ Candidate: ${c.name} - ${c.summary}
 
 Acceptance criteria:
 ${ac.acMarkdown}`,
-  { schema: SCORE_SCHEMA, label: `score:${c.name}`, phase: 'Solutions' },
+  { schema: SCORE_SCHEMA, label: `score:${c.name}`, phase: 'Solutions', model: 'sonnet' },
 )))
 
 const scored = gen.candidates
@@ -148,7 +148,7 @@ const judge = await agent(
 
 Scored candidates:
 ${JSON.stringify(scored, null, 1)}`,
-  { schema: JUDGE_SCHEMA, label: 'judge', phase: 'Solutions' },
+  { schema: JUDGE_SCHEMA, label: 'judge', phase: 'Solutions', model: 'sonnet' },
 )
 
 log(`decide: AC ${acFindings.length ? `capped with ${acFindings.length} open finding(s)` : 'clean'}; judge picked "${judge.pick}" (confidence ${judge.confidence})`)

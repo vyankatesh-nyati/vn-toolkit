@@ -48,7 +48,7 @@ Requirement: ${requirement}
 ${r.brief}
 
 Rules: derive from CODE, never from the requirement's phrasing; report only what matters for this feature plus what to reuse; never invent a symbol — if something named in the brief does not exist, report that as a finding. Return findings (title, detail, evidence) and assumptions (anything you could not verify).`,
-  { schema: READER_SCHEMA, label: `read:${r.key}`, phase: 'Context' },
+  { schema: READER_SCHEMA, label: `read:${r.key}`, phase: 'Context', model: 'sonnet' },
 )))
 
 const contextMap = {}
@@ -90,7 +90,7 @@ Context map (phase 1 findings): ${JSON.stringify(contextMap)}
 Enumerate every question a careful engineer would have asked a human before building this — across ALL dimensions: purpose, behavior (every branch), data (shape, validation, defaults, nullability), errors (invalid input, missing data, failures), boundaries (scope, callers, permissions), non-functional (performance, concurrency, compatibility). Include the brief's open unknowns.
 
 Then answer each yourself: from the CODE where it answers the question (source "code"; cite the evidence in "why"), otherwise by the conservative default — the option that is reversible, smallest in scope, and consistent with the sibling pattern (source "conservative-default"). Give the 2-4 options a human would have been offered, your chosen answer, confidence, and reversibility. Do not skip a question because it is awkward; do not merge questions.`,
-  { schema: CLARIFY_SCHEMA, label: 'self-clarify', phase: 'Clarify' },
+  { schema: CLARIFY_SCHEMA, label: 'self-clarify', phase: 'Clarify', model: 'sonnet' },
 )
 
 log(`understand: ${Object.values(contextMap).reduce((n, r) => n + r.findings.length, 0)} findings, ${clar.clarifications.length} self-answered questions`)
