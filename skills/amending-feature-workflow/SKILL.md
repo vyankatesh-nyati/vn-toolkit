@@ -28,8 +28,11 @@ the slug, report that and stop — there is nothing to amend.
    - which decision(s) the feedback overturns or invalidates (by D-number);
    - `entryPhase` = the earliest phase among those decisions' `[phase k]` tags
      (feedback about wording/scope → phase 2; about the acceptance contract →
-     phase 3; about which solution → phase 4; about the plan/steps → phase 5;
-     about implementation detail only → phase 6);
+     phase 3; about which solution → phase 4; about the plan, steps, or
+     implementation → phase 5). Phase 5 is the floor: anything that touches code
+     re-runs the plan first, so there is always a fresh plan to diff. (Pure
+     cosmetic code tweaks that would not change the plan at all are out of v1
+     scope — see step 4.)
    - `correction` = one authoritative sentence restating the desired outcome.
    If the feedback is ambiguous about which decision it targets, pick the
    earliest plausible phase (re-running more is safe; missing the real one is not).
@@ -50,7 +53,11 @@ the slug, report that and stop — there is nothing to amend.
 4. **Phase 6 — additive.** Diff the new `horizontal-plan.json` against
    `horizontal-plan.prev.json` (snapshotted in step 3). A step is CHANGED if its id is new, or its
    `redCode`/`greenCode`/`files` differ from the prior step of the same id.
-   Invoke `implement.js` with args `{ steps: <changed steps only>, repoRoot,
+   **If NO step changed** (the amendment did not alter the plan): do NOT invoke
+   `implement.js` (it rejects an empty step list by design). Record in
+   `state.md` and the MR that the amendment produced no implementation change —
+   a pure code-only tweak is out of v1 scope; apply it directly — then go to
+   phase 7. Otherwise invoke `implement.js` with args `{ steps: <changed steps only>, repoRoot,
    branch: feature/<slug>, amendMode: true, amendNote: <this amendment's correction> }`.
    Steps present in the prior plan but absent from the new one → record each as
    an MR unresolved item ("step <id> removed by amendment A<n>; its committed
