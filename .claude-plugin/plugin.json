@@ -1,7 +1,7 @@
 {
   "name": "vn-toolkit",
   "description": "Vyankatesh's personal Claude Code toolkit: custom skills, workflows, and commands. Standalone.",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "author": {
     "name": "Vyankatesh Nyati",
     "email": "vyankateshn@sahaj.ai"

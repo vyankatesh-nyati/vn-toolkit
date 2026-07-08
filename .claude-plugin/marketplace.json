@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Vyankatesh's personal Claude Code toolkit (skills, workflows, commands)",
-    "version": "1.8.1"
+    "version": "1.9.0"
   },
   "plugins": [
     {
       "name": "vn-toolkit",
       "source": "./",
       "description": "Personal toolkit: custom skills, workflows, and commands",
-      "version": "1.8.1",
+      "version": "1.9.0",
       "license": "MIT",
       "keywords": [
         "workflow",
