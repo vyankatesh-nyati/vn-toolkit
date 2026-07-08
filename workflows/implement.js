@@ -11,7 +11,7 @@ let input = args
 if (typeof input === 'string') {
   try { input = JSON.parse(input) } catch { input = {} }
 }
-const { steps, repoRoot, branch } = input || {}
+const { steps, repoRoot, branch, amendMode = false, amendNote } = input || {}
 if (!Array.isArray(steps) || !steps.length || !repoRoot || !branch) {
   throw new Error('implement: args.steps (non-empty array), args.repoRoot, args.branch are all required')
 }
@@ -42,6 +42,14 @@ for (const step of steps) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     result = await agent(
       `You are executing ONE step of an approved TDD plan in ${repoRoot} on branch ${branch}. First run: git -C ${repoRoot} branch --show-current — if it is not ${branch}, STOP and return status failed with notes explaining. NEVER switch branches, NEVER push, NEVER touch files outside this step's list.
+${amendMode ? `
+AMENDMENT MODE: this step revises work an earlier run already committed on this
+branch. The files may already contain tests/code from the superseded version.
+Do NOT blindly append — reconcile: replace or delete the superseded test(s) and
+code this step supersedes so the file reflects ONLY the current intended
+behavior, then apply this step's RED/GREEN. The RED expectation may already be
+partially present; the goal state is that this step's tests pass and no
+contradictory leftover test remains. Amendment context: ${amendNote}` : ''}
 ${attempt > 1 ? `This is attempt ${attempt}; a previous attempt failed. Inspect the current file state first — partial work may exist. Reach GREEN for this step.` : ''}
 Step ${step.id} — ${step.title}
 Files: ${step.files.join(', ')}
