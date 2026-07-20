@@ -1,8 +1,8 @@
 export const meta = {
   name: 'feature-auto-decide',
-  description: 'Phases 3-4 of /feature-auto: acceptance criteria with adversarial review, then solution panel and judge',
+  description: 'Phases 3-4 of /feature-auto: acceptance criteria, then solution panel and judge',
   phases: [
-    { title: 'AC', detail: 'write acceptance criteria, adversarially review until clean' },
+    { title: 'AC', detail: 'write acceptance criteria' },
     { title: 'Solutions', detail: 'independent candidate scoring, judge picks one' },
   ],
 }
@@ -24,23 +24,9 @@ const AC_SCHEMA = {
     assumptions: { type: 'array', items: { type: 'string' } },
   },
 }
-const AC_REVIEW_SCHEMA = {
-  type: 'object',
-  required: ['findings'],
-  properties: {
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['issue', 'fix'],
-        properties: { issue: { type: 'string' }, fix: { type: 'string' } },
-      },
-    },
-  },
-}
 
 phase('AC')
-let ac = await agent(
+const ac = await agent(
   `Phase 3 of an autonomous feature pipeline: write the acceptance criteria.
 Repo: ${repoRoot}. Read ${briefPath} and ${contextMapPath} first.
 Requirement: ${requirement}
@@ -48,28 +34,6 @@ Requirement: ${requirement}
 Produce a complete AC document as markdown with sections: ## Happy path, ## Alternate paths, ## Edge cases (empty/boundary values, concurrency/idempotency, permission/tenancy variants where the code branches on them, failure/rollback, states the code allows but the feature cannot reach), ## Assumptions (confirm). One Given/When/Then per behavior, a single observable outcome each, grounded in how the code actually behaves — verify every symbol you name exists. Outcomes you cannot derive from code go under Assumptions, never guessed silently. Return the document and the assumptions list.`,
   { schema: AC_SCHEMA, label: 'write-ac', phase: 'AC', model: 'sonnet' },
 )
-
-let acFindings = []
-for (let i = 1; i <= 3; i++) {
-  const review = await agent(
-    `Adversarially review these acceptance criteria against the brief (${briefPath}), the context map (${contextMapPath}), and the actual code in ${repoRoot}. Hunt for: scenarios contradicting real code behavior, missing edge-case categories, compound Then clauses, implementation details posing as behavior, symbols that do not exist. Empty findings = pass.
-
-${ac.acMarkdown}`,
-    { schema: AC_REVIEW_SCHEMA, label: `review-ac:${i}`, phase: 'AC', model: 'sonnet' },
-  )
-  acFindings = review.findings
-  if (!acFindings.length) break
-  ac = await agent(
-    `Rewrite these acceptance criteria applying every finding below. Keep everything no finding touches. Return the full corrected document and its assumptions list.
-Repo: ${repoRoot}; read ${briefPath} and ${contextMapPath}.
-Requirement: ${requirement}
-Findings: ${JSON.stringify(acFindings)}
-
-Current AC:
-${ac.acMarkdown}`,
-    { schema: AC_SCHEMA, label: `fix-ac:${i}`, phase: 'AC', model: 'haiku', effort: 'low' },
-  )
-}
 
 phase('Solutions')
 const CANDIDATES_SCHEMA = {
@@ -151,6 +115,6 @@ ${JSON.stringify(scored, null, 1)}`,
   { schema: JUDGE_SCHEMA, label: 'judge', phase: 'Solutions', model: 'sonnet' },
 )
 
-log(`decide: AC ${acFindings.length ? `capped with ${acFindings.length} open finding(s)` : 'clean'}; judge picked "${judge.pick}" (confidence ${judge.confidence})`)
+log(`decide: judge picked "${judge.pick}" (confidence ${judge.confidence})`)
 
-return { ac: ac.acMarkdown, acAssumptions: ac.assumptions, acOpenFindings: acFindings, candidates: scored, judge }
+return { ac: ac.acMarkdown, acAssumptions: ac.assumptions, candidates: scored, judge }
