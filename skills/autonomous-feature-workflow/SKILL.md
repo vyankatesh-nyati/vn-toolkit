@@ -13,10 +13,11 @@ whose description carries every decision, assumption, and question the human
 would have seen at the gates. The user consents to the entire run — workflow
 invocations and the final scoped branch push included — by invoking /feature-auto.
 
-**Autonomy contract: phase 0 is the ONLY abort point.** After it passes, never
-stop to ask. Every would-be question becomes a logged decision with a
-conservative default: reversible, smallest scope, consistent with the sibling
-pattern.
+**Autonomy contract: two stops only — the phase-0 abort and the plan-approval
+gate after phase 5.** Between them, never stop to ask: every would-be question
+becomes a logged decision with a conservative default (reversible, smallest
+scope, consistent with the sibling pattern). Once the plan-approval gate is
+cleared, run to the draft MR without stopping again.
 
 ## State layout
 
@@ -88,8 +89,7 @@ All later-phase files are now enumerated above.
    `{ requirement, briefPath, contextMapPath: docs/scratch/<slug>/context-map.md,
    repoRoot }`. Wait for the result.
 3. Write `ac.md` (exactly this filename — do not create any other AC
-   document) = the returned `ac` markdown; if `acOpenFindings` is non-empty,
-   append them under `## Unresolved review findings` (each: issue → fix).
+   document) = the returned `ac` markdown.
 4. Write `solutions.md`: every candidate with its four scores, details, and
    assumptions; then `## Judge` with the pick, why, confidence, and each
    rejected candidate's reason.
@@ -124,10 +124,31 @@ All later-phase files are now enumerated above.
    `horizontal-plan.md` = a human rendering: per step a `## <id> — <title>`
    section with files, RED code block, run+expectFail, GREEN code block,
    run+expectPass, commit message, dependsOn.
-4. If `openFindings` is non-empty, write them into `review-findings.md` and
-   list them as unresolved items for the MR. Record `reviewIterations` in
-   `state.md`.
-5. Update `state.md` (phase 5 DONE); continue.
+4. If `openFindings` is non-empty, write them into `review-findings.md` (a
+   single review pass found them and one fix pass was applied — the human
+   verifies them at the plan-approval gate below).
+5. Update `state.md` (phase 5 DONE); continue to the plan-approval gate.
+
+## Plan-approval gate (after phase 5)
+
+The one stop between phase 0 and delivery. Phase 6 does NOT start until the
+human approves the plan.
+
+1. Update `state.md`: `phase 5 DONE — awaiting plan approval`.
+2. Present to the user, in the session: a 3-6 line summary of the plan (what
+   will be built; step count), the paths to `vertical-plan.md` and
+   `horizontal-plan.md`, and any `openFindings`. Ask them to approve or request
+   changes.
+3. STOP and wait for the user's reply. Never start phase 6 on silence or a
+   vague reply.
+   - Approval (e.g. "approved", "go", "lgtm") → continue to phase 6.
+   - Change request → re-run phase 5 ONCE with the feedback (same
+     `plan-and-review.js` invocation, the feedback appended to the requirement),
+     overwrite the plan docs, then return to step 1 of this gate. Loop until
+     approved.
+4. Cross-session resume: if the session ended at this gate, a later
+   re-invocation with the same slug reads `state.md`, sees `awaiting plan
+   approval`, and re-presents the plan — it never auto-implements.
 
 ## Phase 6 — implement (`implement.js`)
 
@@ -191,7 +212,7 @@ writing code or tests in the target repo.
 | 2 self-clarification | `understand.js` | clarifying Q&A |
 | 3 acceptance criteria | `decide.js` | AC confirmation |
 | 4 solution panel + judge | `decide.js` | solution pick |
-| 5 plans + review loops | `plan-and-review.js` | plan approvals |
+| 5 plans + single review | `plan-and-review.js` | — (plan-approval gate kept, see above) |
 | 6 implement + verify | `implement.js` | code go-ahead |
 | 7 deliver: push + draft MR | orchestrated inline | push approval |
 
@@ -212,7 +233,8 @@ highest-risk first.
 
 ## Hard rules
 
-- Phase 0 abort is the only stop. Afterwards: decisions, never questions.
+- Two stops only: the phase-0 abort and the plan-approval gate after phase 5.
+  Between and after them: decisions, never questions.
 - Writing an assumption down does not authorize proceeding. A gap is only
   buildable when the classifier returned a non-blocking verdict for it;
   "I documented the assumption" on a blocking unknown is the exact failure
