@@ -1,8 +1,8 @@
 export const meta = {
   name: 'feature-auto-implement',
-  description: 'Phase 6 of /feature-auto: execute horizontal TDD steps with per-step commits, then verify',
+  description: 'Phase 6 of /feature-auto: execute the horizontal TDD plan in a single job, then verify',
   phases: [
-    { title: 'Implement', detail: 'one agent per step: RED, GREEN, commit; 3 attempts max' },
+    { title: 'Implement', detail: 'one agent executes every step: RED, GREEN, commit' },
     { title: 'Verify', detail: 'full suite plus end-to-end evidence' },
   ],
 }
@@ -16,65 +16,53 @@ if (!Array.isArray(steps) || !steps.length || !repoRoot || !branch) {
   throw new Error('implement: args.steps (non-empty array), args.repoRoot, args.branch are all required')
 }
 
-const STEP_RESULT_SCHEMA = {
+const IMPLEMENT_RESULT_SCHEMA = {
   type: 'object',
-  required: ['status', 'commitSha', 'testEvidence', 'notes'],
+  required: ['results'],
   properties: {
-    status: { type: 'string', enum: ['green', 'failed'] },
-    commitSha: { type: 'string' },
-    testEvidence: { type: 'string' },
-    notes: { type: 'string' },
+    results: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['id', 'status', 'commitSha', 'testEvidence', 'notes'],
+        properties: {
+          id: { type: 'string' },
+          status: { type: 'string', enum: ['green', 'failed', 'skipped'] },
+          commitSha: { type: 'string' },
+          testEvidence: { type: 'string' },
+          notes: { type: 'string' },
+        },
+      },
+    },
   },
 }
 
 phase('Implement')
-const results = []
-const failed = new Set()
-
-for (const step of steps) {
-  const blockedBy = step.dependsOn.filter(d => failed.has(d))
-  if (blockedBy.length) {
-    results.push({ id: step.id, status: 'skipped', reason: `depends on failed step(s): ${blockedBy.join(', ')}` })
-    log(`step ${step.id}: SKIPPED (blocked by ${blockedBy.join(', ')})`)
-    continue
-  }
-  let result = null
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    result = await agent(
-      `You are executing ONE step of an approved TDD plan in ${repoRoot} on branch ${branch}. First run: git -C ${repoRoot} branch --show-current — if it is not ${branch}, STOP and return status failed with notes explaining. NEVER switch branches, NEVER push, NEVER touch files outside this step's list.
+const impl = await agent(
+  `You are executing an approved TDD plan in ${repoRoot} on branch ${branch} — ALL steps, in one session.
+First run: git -C ${repoRoot} branch --show-current — if it is not ${branch}, STOP and return results with a single entry { id: "-", status: "failed", commitSha: "", testEvidence: "", notes: "<why>" }. NEVER switch branches, NEVER push, NEVER touch files outside each step's file list.
 ${amendMode ? `
-AMENDMENT MODE: this step revises work an earlier run already committed on this
-branch. The files may already contain tests/code from the superseded version.
-Do NOT blindly append — reconcile: replace or delete the superseded test(s) and
-code this step supersedes so the file reflects ONLY the current intended
-behavior, then apply this step's RED/GREEN. The RED expectation may already be
-partially present; the goal state is that this step's tests pass and no
-contradictory leftover test remains. Amendment context: ${amendNote}` : ''}
-${attempt > 1 ? `This is attempt ${attempt}; a previous attempt failed. Inspect the current file state first — partial work may exist. Reach GREEN for this step.` : ''}
-Step ${step.id} — ${step.title}
-Files: ${step.files.join(', ')}
-RED — add exactly this failing test code (each block's first line "FILE: <path>" gives its file):
-${step.redCode}
-Run: ${step.runCommand}   Expect FAIL: ${step.expectFail}
-GREEN — apply exactly this change (same FILE convention):
-${step.greenCode || '(no production change in this step)'}
-Run: ${step.runCommand}   Expect PASS: ${step.expectPass}
+AMENDMENT MODE: these steps revise work an earlier run already committed on this
+branch. Files may already contain tests/code from the superseded version. Do NOT
+blindly append — for each step reconcile: replace or delete the superseded test(s)
+and code it supersedes so the file reflects ONLY the current intended behavior,
+then apply that step's RED/GREEN. The RED expectation may already be partially
+present; the goal is that the step's tests pass and no contradictory leftover test
+remains. Amendment context: ${amendNote}
+` : ''}
+Execute the steps below strictly IN ORDER. For each step:
+1. Add exactly its RED test code (each code block's first line "FILE: <path>" gives its file). Run its runCommand and confirm it FAILS for the stated expectFail reason.
+2. Apply exactly its GREEN change (same FILE convention; greenCode may be empty — then no production change). Run its runCommand and confirm it PASSES (expectPass).
+3. Stage ONLY that step's files and commit with exactly its commitMessage.
+If a step's dependsOn lists a step that ended non-green, skip it: status "skipped", note which dependency blocked it, do not commit. If the plan's code has a small defect (typo, wrong path, missing import), fix it minimally and record it in notes.
 
-Execute RED first and confirm it fails for the stated reason, then GREEN and confirm it passes. If the plan's code has a small defect (typo, wrong path, missing import), fix it minimally and record that in notes. Then stage ONLY this step's files and commit with exactly this message: ${step.commitMessage}
-Return: status green|failed; commitSha (the new commit's short sha, or "" if failed); testEvidence (the key RED and GREEN output lines); notes (deviations, or "").`,
-      { schema: STEP_RESULT_SCHEMA, label: `step:${step.id}${attempt > 1 ? `:retry${attempt}` : ''}`, phase: 'Implement', model: 'haiku', effort: 'low' },
-    )
-    if (result && result.status === 'green') break
-  }
-  if (result && result.status === 'green') {
-    results.push({ id: step.id, status: 'green', commitSha: result.commitSha, testEvidence: result.testEvidence, notes: result.notes })
-    log(`step ${step.id}: GREEN (${result.commitSha})`)
-  } else {
-    failed.add(step.id)
-    results.push({ id: step.id, status: 'failed', notes: result ? result.notes : 'agent returned no result' })
-    log(`step ${step.id}: FAILED after 3 attempts`)
-  }
-}
+Steps (JSON array):
+${JSON.stringify(steps)}
+
+Return results: exactly one entry per step, in the same order — { id; status green|failed|skipped; commitSha (the new commit's short sha, or "" if not committed); testEvidence (the key RED and GREEN output lines, or "" if skipped); notes (deviations/skip reason, or "") }.`,
+  { schema: IMPLEMENT_RESULT_SCHEMA, label: 'implement-all', phase: 'Implement', model: 'sonnet' },
+)
+const results = impl.results
 
 phase('Verify')
 const VERIFY_SCHEMA = {
@@ -92,6 +80,7 @@ Run the full test suite. Where the project offers a runnable surface (script, RE
   { schema: VERIFY_SCHEMA, label: 'verify', phase: 'Verify', model: 'haiku', effort: 'low' },
 )
 
+const unresolved = results.filter(r => r.status !== 'green')
 log(`implement: ${results.filter(r => r.status === 'green').length}/${steps.length} steps green; suitePassed=${verify.suitePassed}`)
 
-return { results, unresolved: results.filter(r => r.status !== 'green'), verify }
+return { results, unresolved, verify }
