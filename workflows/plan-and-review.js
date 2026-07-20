@@ -1,10 +1,10 @@
 export const meta = {
   name: 'feature-auto-plan-and-review',
-  description: 'Phase 5 of /feature-auto: vertical plan, horizontal TDD plan with complete code, deterministic review loops',
+  description: 'Phase 5 of /feature-auto: vertical plan, horizontal TDD plan with complete code, single deterministic review pass',
   phases: [
     { title: 'Vertical', detail: 'per-layer NEW/CHANGED/REUSE/UNCHANGED map' },
     { title: 'Horizontal', detail: 'ordered TDD steps with complete code' },
-    { title: 'Review', detail: 'test-convention and new-tech review loops until clean' },
+    { title: 'Review', detail: 'test-convention and new-tech review, single pass' },
   ],
 }
 
@@ -90,36 +90,32 @@ const FINDINGS_SCHEMA = {
   },
 }
 
-let openFindings = []
-let iterations = 0
-for (let i = 1; i <= 5; i++) {
-  iterations = i
-  const planJson = JSON.stringify(horizontal.steps)
-  const reviews = await parallel([
-    () => agent(
-      `Review the test code inside this horizontal plan against the vn-toolkit writing-tests conventions: every AC scenario covered (happy, edges, errors, boundaries); AAA phases separated by a single blank line with NO Arrange/Act/Assert label comments; whole-object assertions where the language supports them; test names consistent with the repo's convention (repo: ${repoRoot} — read a sibling test if one exists, else require internal consistency); no magic literals. Findings reference stepId. Empty findings = pass.
+const planJson = JSON.stringify(horizontal.steps)
+const reviews = await parallel([
+  () => agent(
+    `Review the test code inside this horizontal plan against the vn-toolkit writing-tests conventions: every AC scenario covered (happy, edges, errors, boundaries); AAA phases separated by a single blank line with NO Arrange/Act/Assert label comments; whole-object assertions where the language supports them; test names consistent with the repo's convention (repo: ${repoRoot} — read a sibling test if one exists, else require internal consistency); no magic literals. Findings reference stepId. Empty findings = pass.
 
 ${planJson}`,
-      { schema: FINDINGS_SCHEMA, label: `review-tests:${i}`, phase: 'Review', model: 'sonnet' },
-    ),
-    () => agent(
-      `Review this horizontal plan for any technology NEW to this repo (repo: ${repoRoot}): a library, framework feature, API, or version not already used there. For each new item check: warranted (not novelty — prefer what the repo already uses)? correct per CURRENT docs (verify, never from memory)? actually available in the repo's stack? known pitfalls? If the plan introduces nothing new, return empty findings. Findings reference stepId.
+    { schema: FINDINGS_SCHEMA, label: 'review-tests', phase: 'Review', model: 'sonnet' },
+  ),
+  () => agent(
+    `Review this horizontal plan for any technology NEW to this repo (repo: ${repoRoot}): a library, framework feature, API, or version not already used there. For each new item check: warranted (not novelty — prefer what the repo already uses)? correct per CURRENT docs (verify, never from memory)? actually available in the repo's stack? known pitfalls? If the plan introduces nothing new, return empty findings. Findings reference stepId.
 
 ${planJson}`,
-      { schema: FINDINGS_SCHEMA, label: `review-tech:${i}`, phase: 'Review', model: 'sonnet' },
-    ),
-  ])
-  openFindings = reviews.filter(Boolean).flatMap(r => r.findings)
-  log(`plan review iteration ${i}: ${openFindings.length} finding(s)`)
-  if (!openFindings.length) break
+    { schema: FINDINGS_SCHEMA, label: 'review-tech', phase: 'Review', model: 'sonnet' },
+  ),
+])
+const openFindings = reviews.filter(Boolean).flatMap(r => r.findings)
+log(`plan review: ${openFindings.length} finding(s)`)
+if (openFindings.length) {
   horizontal = await agent(
     `Rewrite this horizontal plan applying EVERY finding below. Keep untouched steps identical. Return the complete corrected steps array in the same schema.
 Repo: ${repoRoot}. Findings: ${JSON.stringify(openFindings)}
 
 Current steps:
 ${planJson}`,
-    { schema: STEP_SCHEMA, label: `fix-plan:${i}`, phase: 'Review', model: 'haiku', effort: 'low' },
+    { schema: STEP_SCHEMA, label: 'fix-plan', phase: 'Review', model: 'haiku', effort: 'low' },
   )
 }
 
-return { verticalPlan: vertical.planMarkdown, steps: horizontal.steps, reviewIterations: iterations, openFindings }
+return { verticalPlan: vertical.planMarkdown, steps: horizontal.steps, openFindings }
