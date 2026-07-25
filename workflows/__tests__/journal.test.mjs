@@ -28,3 +28,23 @@ test('state layout lists journal.md and marks DECISIONS.md as the index', () => 
   assert.ok(/\|\s*`journal\.md`\s*\|/.test(skill), 'journal.md row in the state table')
   assert.ok(/`DECISIONS\.md`.*thin.*index/i.test(skill), 'DECISIONS.md described as thin index')
 })
+
+test('phase write-steps append journal sections instead of full decision entries', () => {
+  const p12 = skill.slice(skill.indexOf('## Phases 1-2'), skill.indexOf('## Phases 3-4'))
+  assert.ok(p12.includes('## Understanding the code'), 'phase 1-2 writes the understanding section')
+  assert.ok(p12.includes('## Questions I answered myself'), 'phase 2 writes the questions section')
+  assert.ok(p12.includes('journal.md') && p12.includes('thin'), 'phase 2 appends thin DECISIONS lines')
+  assert.ok(!p12.includes('Question it replaces = question'), 'old full-format append wording gone from phase 1-2')
+
+  const p34 = skill.slice(skill.indexOf('## Phases 3-4'), skill.indexOf('## Phase 5'))
+  assert.ok(p34.includes('## Acceptance criteria & the approach I picked'), 'phase 3-4 writes the AC+approach section')
+  assert.ok(!p34.includes('Options considered = all candidate names'), 'old full-format append wording gone from phase 3-4')
+
+  const p6 = skill.slice(skill.indexOf('## Phase 6'), skill.indexOf('## Phase 7'))
+  assert.ok(p6.includes('## What I built'), 'phase 6 writes the implementation section')
+})
+
+test('the per-phase decision COUNT contracts survive the rewrite', () => {
+  assert.ok(/MUST equal the length of\s*`?clarifications`?/.test(skill), 'clarifications 1:1 count kept')
+  assert.ok(/MUST equal the length of\s*`?acAssumptions`?/.test(skill), 'acAssumptions 1:1 count kept')
+})

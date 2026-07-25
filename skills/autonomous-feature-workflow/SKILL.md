@@ -73,14 +73,20 @@ All later-phase files are now enumerated above.
    repoRoot: <target repo root> }`. Wait for the result.
 3. Write `context-map.md`: one `##` section per reader key (entry-points,
    sibling-pattern, tests, history) — each finding as `**<title>** — <detail>
-   [<evidence>]`, then an `Assumptions` list if the reader returned any.
-4. Append each `clarifications[]` entry to `DECISIONS.md` in the decision-log
-   format: Question it replaces = question; Options considered = options;
-   Chosen / Confidence / Reversibility as returned; Why = the returned why
-   with ` (source: <source>)` appended; phase tag 2; risk from the formula.
-   Count first: the number of new entries MUST equal the length of
-   `clarifications` — collapsing or skipping entries is a contract violation.
-   Number D<N> continuing from the last entry.
+   [<evidence>]`, then an `Assumptions` list if the reader returned any. Also
+   append the `journal.md` `## Understanding the code` section: the readers'
+   findings woven into first-person prose with inline `file:line` evidence,
+   naming the sibling pattern to reuse. (Create `journal.md` here if absent.)
+4. For each `clarifications[]` entry, write ONE `### D<N> — <title> {#d<N>}`
+   subsection under the journal's `## Questions I answered myself` section (the
+   question the human would have been asked, the chosen option, and the WHY —
+   from the returned why with its source — in prose) AND append ONE thin line to
+   `DECISIONS.md` (`[phase 2]`, risk from the formula, `[assumption]` iff
+   `source: conservative-default`, linking `journal.md#d<N>`). Count first: the
+   number of new journal subsections AND the number of new `DECISIONS.md` lines
+   MUST equal the length of `clarifications` and be 1:1 with each other —
+   collapsing or skipping entries is a contract violation. Number D<N>
+   continuing from the last.
 5. Update `state.md` (phases 1-2 DONE); continue to phase 3.
 
 ## Phases 3-4 — decide (`decide.js`)
@@ -98,16 +104,19 @@ All later-phase files are now enumerated above.
    No match → the decide run is invalid; re-invoke decide.js once; if it
    still mismatches, record the run as failed in `state.md` and STOP — never
    proceed on an invented pick.
-6. Append decisions to `DECISIONS.md`: one entry for EVERY item in
-   `acAssumptions` — count them first; the number of new assumption entries
-   MUST equal the length of `acAssumptions`, and collapsing similar
-   assumptions into one entry is a contract violation (Question it replaces =
-   the assumption restated as the question it answers; confidence M unless
-   the assumption text states evidence) — plus exactly ONE entry for the
-   solution pick (Options considered = all candidate names; Chosen = pick;
-   Why = judge's why; Confidence = judge's confidence; Reversibility from
-   the pick's nature; risk strictly from the formula).
-   Phase tags: 3 on each assumption entry, 4 on the pick entry.
+6. Write the journal's `## Acceptance criteria & the approach I picked` section:
+   the AC in brief, then the judge's pick and why it beat each rejected
+   candidate, in prose. Then record decisions as journal `### D<N> — <title>
+   {#d<N>}` subsections + matching thin `DECISIONS.md` lines, 1:1:
+   - one per item in `acAssumptions` — count them first; the number of new
+     assumption entries MUST equal the length of `acAssumptions` (collapsing
+     similar assumptions into one is a contract violation). Restate each as the
+     question it answers; confidence M unless the assumption states evidence;
+     `[phase 3]`; always `[assumption]`.
+   - exactly ONE for the solution pick: the journal subsection names all
+     candidates and gives the judge's why; the thin line is `[phase 4]`, risk
+     from the pick's confidence × reversibility, `[assumption]` iff the pick
+     came by conservative-default.
 7. If judge confidence is L: record `TOP REVIEW ITEM: solution pick (LOW
    confidence)` in `state.md`, and apply the conservative bias — every later
    sub-decision prefers the most conservative variant.
@@ -159,6 +168,9 @@ human approves the plan.
    repoRoot, branch: feature/<slug> }`.
 3. Write `verify.md`: per-step results (id, status, commit sha, test
    evidence, notes), then the verify block (suitePassed, evidence, concerns).
+   Also append the journal's `## What I built` section: per step in order — the
+   failing test written, the implementation, and the pass/fail evidence — noting
+   any non-green step or verify concern as part of the story.
 4. Any non-green step or verify concern is an unresolved item for the MR.
    If NO step reached green, record the run as failed in `state.md` and STOP
    — there is nothing to deliver.
