@@ -56,3 +56,11 @@ test('MR assembly embeds the journal and builds sections from thin tags', () => 
   assert.ok(/\[assumption\]/.test(p7), 'assumptions section built from the [assumption] tag')
   assert.ok(!p7.includes('(source: conservative-default)'), 'old source-text heuristic removed from MR assembly')
 })
+
+const amend = readFileSync(join(repoRoot, 'skills/amending-feature-workflow/SKILL.md'), 'utf8')
+
+test('amend regenerates journal subsections alongside thin decision lines', () => {
+  assert.ok(amend.includes('journal.md'), 'amend references the journal')
+  assert.ok(/\{#d<N>\}|journal\.md#d/.test(amend), 'amend regenerates the journal anchor/subsection')
+  assert.ok(amend.includes('[amend A<n>]'), 'amend keeps its amend tag on the thin line')
+})

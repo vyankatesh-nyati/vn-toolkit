@@ -24,7 +24,9 @@ the slug, report that and stop — there is nothing to amend.
 ## Steps
 
 1. **Triage (inline — this is orchestration, not phase work).** Read
-   `state.md`, `DECISIONS.md`, and the feedback. Determine:
+   `state.md`, `DECISIONS.md` (thin index — each line's `[phase <k>]` tag drives
+   entry-phase selection; the full rationale for a decision is in its
+   `journal.md#d<N>` subsection — read it there), and the feedback. Determine:
    - which decision(s) the feedback overturns or invalidates (by D-number);
    - `entryPhase` = the earliest phase among those decisions' `[phase k]` tags
      (feedback about wording/scope → phase 2; about the acceptance contract →
@@ -46,9 +48,11 @@ the slug, report that and stop — there is nothing to amend.
    needs the prior plan to diff; regenerating first would destroy it). Then
    re-run entryPhase..5 with the SAME Workflow scripts and args the forward
    pipeline uses (see autonomous-feature-workflow phases 1-5), reading the
-   amended docs. Overwrite the regenerated docs in place. Append any new
-   decisions to `DECISIONS.md` tagged `[amend A<n>]`, numbered after the last.
-   Skip phases before entryPhase entirely.
+   amended docs. Overwrite the regenerated docs in place — including rewriting the affected
+   `journal.md` `### D<N> — <title> {#d<N>}` subsections for the re-run phases.
+   Append any new decisions as a journal subsection PLUS a thin `DECISIONS.md`
+   line, both tagged `[amend A<n>]` and numbered after the last. Skip phases
+   before entryPhase entirely.
 
 4. **Phase 6 — additive.** Diff the new `horizontal-plan.json` against
    `horizontal-plan.prev.json` (snapshotted in step 3). A step is CHANGED if its id is new, or its
