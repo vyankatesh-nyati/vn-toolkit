@@ -64,3 +64,11 @@ test('amend regenerates journal subsections alongside thin decision lines', () =
   assert.ok(/\{#d<N>\}|journal\.md#d/.test(amend), 'amend regenerates the journal anchor/subsection')
   assert.ok(amend.includes('[amend A<n>]'), 'amend keeps its amend tag on the thin line')
 })
+
+test('plugin manifests all declare the same, bumped version', () => {
+  const plugin = JSON.parse(readFileSync(join(repoRoot, '.claude-plugin/plugin.json'), 'utf8'))
+  const market = JSON.parse(readFileSync(join(repoRoot, '.claude-plugin/marketplace.json'), 'utf8'))
+  const marketVersions = JSON.stringify(market).match(/"version":\s*"[^"]+"/g) || []
+  assert.equal(plugin.version, '2.2.0', 'plugin.json bumped to 2.2.0')
+  marketVersions.forEach(v => assert.ok(v.includes('2.2.0'), `marketplace version agrees: ${v}`))
+})
