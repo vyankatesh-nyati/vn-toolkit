@@ -33,7 +33,8 @@ a nicer name).
 | `state.md` | every phase — phase pointer, branch, MR url |
 | `brief.md` | phase 0 |
 | `QUESTIONS.md` | phase 0, abort path only |
-| `DECISIONS.md` | phases 2+ (format below) |
+| `journal.md` | phases 1+ (readable journey; format below) |
+| `DECISIONS.md` | phases 2+ (thin risk-ranked index into `journal.md`; format below) |
 | `context-map.md` | phases 1-2 |
 | `ac.md` | phase 3 |
 | `solutions.md` | phase 4 |
@@ -219,17 +220,44 @@ writing code or tests in the target repo.
 Resume: re-invoked with the same slug, read `state.md` and continue from the
 first incomplete phase.
 
-## Decision log format (`DECISIONS.md`)
+## Run journal (`journal.md`) and decision index (`DECISIONS.md`)
 
-    ### D<N> — <one-line title>                 [phase <k>] [risk: H|M|L]
-    Question it replaces: <what the human would have been asked>
-    Options considered: <a> / <b> / <c>
-    Chosen: <x>
-    Why: <one or two lines>
-    Confidence: H|M|L    Reversibility: easy | moderate | rebuild
+`journal.md` is the durable, human-readable record — a first-person,
+chronological journey of the feature from the session's point of view: what I
+found, what I understood, then what I decided and WHY, and finally what I built.
+Write it INCREMENTALLY as each phase completes (same cadence as `state.md`), so a
+mid-run or aborted run still leaves a coherent partial journal. Voice: a
+developer's own working notes ("I looked at…", "I decided… because…"). Never a
+table.
 
-Risk = confidence x reversibility (rebuild + Low = H). The MR lists decisions
-highest-risk first.
+Sections, appended in pipeline order by the phase that produces the data:
+
+- `## Understanding the code` — phases 1-2: what the readers found, in prose,
+  with inline `file:line` evidence; name the sibling pattern being reused.
+- `## Questions I answered myself` — phase 2: one `### D<N> — <title> {#d<N>}`
+  subsection per self-answered question — the question a human would have been
+  asked, the option chosen, and the WHY, in sentences.
+- `## Acceptance criteria & the approach I picked` — phases 3-4: the AC in
+  brief, then the judge's pick and why it beat the rejected candidates; a
+  `### D<N> — <title> {#d<N>}` subsection per AC assumption and one for the pick.
+- `## What I built` — phase 6: per TDD step in order — the failing test written,
+  the implementation, and the pass/fail evidence; note any non-green step or
+  verify concern as part of the story.
+
+`DECISIONS.md` is now a thin INDEX into the journal — one line per decision, no
+options/why/confidence prose (that lives in the journal):
+
+    ### Decisions taken on your behalf
+    - D<N> — <one-line title>  [phase <k>] [risk: H|M|L] [reversibility: easy|moderate|rebuild] [assumption]  → journal.md#d<N>
+
+Risk = confidence x reversibility (rebuild + Low = H). Lines are appended in
+`D<N>` order; the MR re-sorts them highest-risk first. Numbering (`D<N>`) is
+continuous across phases and MUST match the journal's `{#d<N>}` anchors 1:1 —
+every decision has exactly one thin line and exactly one journal subsection. Tag
+rules: `[phase <k>]` is retained so `feature-amend`'s triage can pick its entry
+phase; `[assumption]` is present iff the decision was taken by
+conservative-default (`source: conservative-default`) or is an AC assumption —
+phase 7 builds its `## Assumptions` section from the `[assumption]`-tagged lines.
 
 ## Hard rules
 
