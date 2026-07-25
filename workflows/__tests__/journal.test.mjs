@@ -48,3 +48,11 @@ test('the per-phase decision COUNT contracts survive the rewrite', () => {
   assert.ok(/MUST equal the length of\s*`?clarifications`?/.test(skill), 'clarifications 1:1 count kept')
   assert.ok(/MUST equal the length of\s*`?acAssumptions`?/.test(skill), 'acAssumptions 1:1 count kept')
 })
+
+test('MR assembly embeds the journal and builds sections from thin tags', () => {
+  const p7 = skill.slice(skill.indexOf('## Phase 7'), skill.indexOf('## Phases 1-7'))
+  assert.ok(/journal\.md/.test(p7), 'phase 7 references the journal')
+  assert.ok(/<details>/.test(p7), 'journal is embedded in a collapsible details block')
+  assert.ok(/\[assumption\]/.test(p7), 'assumptions section built from the [assumption] tag')
+  assert.ok(!p7.includes('(source: conservative-default)'), 'old source-text heuristic removed from MR assembly')
+})

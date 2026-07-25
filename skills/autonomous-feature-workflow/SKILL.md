@@ -180,13 +180,14 @@ human approves the plan.
 
 1. Assemble `mr.md` in exactly this order: (1) what was built, 3-6 lines,
    plus how to try it; (2) `## Decisions taken on your behalf` — every
-   DECISIONS.md entry, ordered risk H then M then L; (3) `## Assumptions` —
-   every decision whose Why carries `(source: conservative-default)` plus the
-   AC assumptions; (4) `## Unresolved items` — capped review findings,
-   failed/skipped steps, verify concerns (omit section if none); (5)
-   collapsible `<details>` sections for the AC, vertical plan, and horizontal
-   plan; (6) test & verify evidence from `verify.md`; (7) footer: how to
-   amend (`/feature-amend <slug> "<feedback>"`).
+   `DECISIONS.md` thin line, re-sorted risk H then M then L, each linking its
+   `journal.md#d<N>` anchor; (3) `## Assumptions` — every `DECISIONS.md` line
+   tagged `[assumption]` (linking its journal anchor); (4) `## Unresolved items`
+   — capped review findings, failed/skipped steps, verify concerns (omit section
+   if none); (5) collapsible `<details>` sections for the run journal
+   (`journal.md`), the AC, vertical plan, and horizontal plan; (6) test & verify
+   evidence from `verify.md`; (7) footer: how to amend
+   (`/feature-amend <slug> "<feedback>"`).
 2. `git -C <repo> remote get-url origin` — no remote? Report "no remote —
    draft-MR description ready at docs/scratch/<slug>/mr.md", update
    `state.md` (phase 7 DONE, MR: none — no remote), and STOP gracefully.
