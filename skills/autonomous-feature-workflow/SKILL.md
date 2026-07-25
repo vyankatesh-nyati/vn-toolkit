@@ -81,8 +81,9 @@ All later-phase files are now enumerated above.
    subsection under the journal's `## Questions I answered myself` section (the
    question the human would have been asked, the chosen option, and the WHY —
    from the returned why with its source — in prose) AND append ONE thin line to
-   `DECISIONS.md` (`[phase 2]`, risk from the formula, `[assumption]` iff
-   `source: conservative-default`, linking `journal.md#d<N>`). Count first: the
+   `DECISIONS.md` (`[phase 2]`, risk and `[reversibility]` from the returned
+   values, `[assumption]` iff `source: conservative-default`, linking
+   `journal.md#d<N>`). Count first: the
    number of new journal subsections AND the number of new `DECISIONS.md` lines
    MUST equal the length of `clarifications` and be 1:1 with each other —
    collapsing or skipping entries is a contract violation. Number D<N>
@@ -112,11 +113,12 @@ All later-phase files are now enumerated above.
      assumption entries MUST equal the length of `acAssumptions` (collapsing
      similar assumptions into one is a contract violation). Restate each as the
      question it answers; confidence M unless the assumption states evidence;
-     `[phase 3]`; always `[assumption]`.
+     `[phase 3]`; reversibility from the assumption's nature; always
+     `[assumption]`.
    - exactly ONE for the solution pick: the journal subsection names all
      candidates and gives the judge's why; the thin line is `[phase 4]`, risk
-     from the pick's confidence × reversibility, `[assumption]` iff the pick
-     came by conservative-default.
+     and `[reversibility]` from the pick's confidence × reversibility,
+     `[assumption]` iff the pick came by conservative-default.
 7. If judge confidence is L: record `TOP REVIEW ITEM: solution pick (LOW
    confidence)` in `state.md`, and apply the conservative bias — every later
    sub-decision prefers the most conservative variant.

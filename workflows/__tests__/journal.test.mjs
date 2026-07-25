@@ -72,3 +72,10 @@ test('plugin manifests all declare the same, bumped version', () => {
   assert.equal(plugin.version, '2.2.0', 'plugin.json bumped to 2.2.0')
   marketVersions.forEach(v => assert.ok(v.includes('2.2.0'), `marketplace version agrees: ${v}`))
 })
+
+test('per-phase write-steps emit the reversibility tag', () => {
+  const p12 = skill.slice(skill.indexOf('## Phases 1-2'), skill.indexOf('## Phases 3-4'))
+  const p34 = skill.slice(skill.indexOf('## Phases 3-4'), skill.indexOf('## Phase 5'))
+  assert.ok(/reversibility/i.test(p12), 'phase 1-2 write-step emits reversibility')
+  assert.ok(/reversibility/i.test(p34), 'phase 3-4 write-step emits reversibility')
+})
