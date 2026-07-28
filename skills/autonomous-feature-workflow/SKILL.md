@@ -165,9 +165,13 @@ human approves the plan.
 ## Phase 6 — implement (`implement.js`)
 
 1. Script-existence check per Phases 1-7 rules.
-2. Read `horizontal-plan.json`; invoke: scriptPath =
-   `<plugin workflows dir>/implement.js`, args = `{ steps: <the parsed array>,
-   repoRoot, branch: feature/<slug> }`.
+2. Invoke: scriptPath = `<plugin workflows dir>/implement.js`, args =
+   `{ planPath: docs/scratch/<slug>/horizontal-plan.json, repoRoot,
+   branch: feature/<slug> }`. Pass the PATH: do NOT read `horizontal-plan.json`
+   into the session and do NOT inline its steps into `args`. The plan carries
+   complete generated code (tens of KB); re-emitting it costs the whole plan in
+   output tokens and risks truncating or mangling the very code the run
+   depends on. The implement agent reads the file itself.
 3. Write `verify.md`: per-step results (id, status, commit sha, test
    evidence, notes), then the verify block (suitePassed, evidence, concerns).
    Also append the journal's `## What I built` section: per step in order — the

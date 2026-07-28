@@ -11,10 +11,18 @@ let input = args
 if (typeof input === 'string') {
   try { input = JSON.parse(input) } catch { input = {} }
 }
-const { steps, repoRoot, branch, amendMode = false, amendNote } = input || {}
-if (!Array.isArray(steps) || !steps.length || !repoRoot || !branch) {
-  throw new Error('implement: args.steps (non-empty array), args.repoRoot, args.branch are all required')
+const { steps, planPath, stepIds, repoRoot, branch, amendMode = false, amendNote } = input || {}
+const inlineSteps = Array.isArray(steps) && steps.length ? steps : null
+if ((!inlineSteps && !planPath) || !repoRoot || !branch) {
+  throw new Error('implement: args.planPath — or args.steps (non-empty array) — plus args.repoRoot and args.branch are all required')
 }
+
+const selected = Array.isArray(stepIds) && stepIds.length ? stepIds : null
+const stepsSection = inlineSteps
+  ? `Steps (JSON array):
+${JSON.stringify(inlineSteps)}`
+  : `Steps: after the branch check, read ${planPath} (resolve relative to ${repoRoot}) — a JSON array of step objects, in execution order — and treat it as the authoritative plan. Never re-derive, summarize, or improvise a step.${selected ? `
+Execute ONLY these step ids, in this order: ${selected.join(', ')}. Ignore every other step in that file.` : ''}`
 
 const IMPLEMENT_RESULT_SCHEMA = {
   type: 'object',
@@ -56,10 +64,9 @@ Execute the steps below strictly IN ORDER. For each step:
 3. Stage ONLY that step's files and commit with exactly its commitMessage.
 If a step's dependsOn lists a step that ended non-green, skip it: status "skipped", note which dependency blocked it, do not commit. If the plan's code has a small defect (typo, wrong path, missing import), fix it minimally and record it in notes.
 
-Steps (JSON array):
-${JSON.stringify(steps)}
+${stepsSection}
 
-Return results: exactly one entry per step, in the same order — { id; status green|failed|skipped; commitSha (the new commit's short sha, or "" if not committed); testEvidence (the key RED and GREEN output lines, or "" if skipped); notes (deviations/skip reason, or "") }.`,
+Return results: exactly one entry per executed step, in the same order — { id; status green|failed|skipped; commitSha (the new commit's short sha, or "" if not committed); testEvidence (the key RED and GREEN output lines, or "" if skipped); notes (deviations/skip reason, or "") }.`,
   { schema: IMPLEMENT_RESULT_SCHEMA, label: 'implement-all', phase: 'Implement', model: 'sonnet' },
 )
 const results = impl.results
@@ -81,6 +88,7 @@ Run the full test suite. Where the project offers a runnable surface (script, RE
 )
 
 const unresolved = results.filter(r => r.status !== 'green')
-log(`implement: ${results.filter(r => r.status === 'green').length}/${steps.length} steps green; suitePassed=${verify.suitePassed}`)
+const total = (inlineSteps || selected || results).length
+log(`implement: ${results.filter(r => r.status === 'green').length}/${total} steps green; suitePassed=${verify.suitePassed}`)
 
 return { results, unresolved, verify }
