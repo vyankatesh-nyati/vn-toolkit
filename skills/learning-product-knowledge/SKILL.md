@@ -51,8 +51,10 @@ the first that resolves:
 1. **Explicit in the request** — `--product <slug>`, or "for <product>".
 2. **`cwd` matches a `repos:` entry** in some `MAP.md` front matter:
    ```bash
-   grep -l "$(pwd)" ~/.claude/knowledge/*/MAP.md 2>/dev/null
+   grep -H "^repos:" ~/.claude/knowledge/*/MAP.md 2>/dev/null; pwd
    ```
+
+Expand each `~` to the home directory, then pick the KB whose repo path **is the current directory or one of its ancestors**. If two match, the longest path wins. You compare the printed values yourself on purpose: `repos:` holds tilde paths while `pwd` prints an absolute one, and a one-liner doing both tilde expansion and prefix matching is fragile. No helper script is reachable here.
 3. **Exactly one KB exists** — use it, and say which one you chose:
    ```bash
    ls -d ~/.claude/knowledge/*/ 2>/dev/null
@@ -77,7 +79,7 @@ only its two headings. Do **not** create `topics/` or `sources/raw/` until somet
 | One file or URL, 600 lines or more | subagent |
 | A directory, a glob, or several files | subagent, always |
 
-Measure before deciding: `wc -l <path>`.
+Measure before deciding: `wc -l <path>`. A URL has no line count until it is retrieved — fetch it first, then measure the retrieved text the same way.
 
 Reading inline keeps the source discussable in this conversation, which is worth having for anything
 small. Delegating keeps a large source from consuming the session — the user may be handing over
@@ -89,10 +91,10 @@ Write one summary per source to `sources/S<NNN>-<slug>.md` using
 `references/source-template.md`. Next ID:
 
 ```bash
-ls ~/.claude/knowledge/<slug>/sources/S*.md 2>/dev/null | wc -l
+ls ~/.claude/knowledge/<slug>/sources/ 2>/dev/null | grep -o '^S[0-9]\{3\}' | sort | tail -1
 ```
 
-Take the highest existing ID and add one, so gaps are never reused.
+That is the highest existing ID — add one and zero-pad to three digits. IDs are fixed-width, so a lexicographic sort gives the true maximum. Never reuse a gap: if `S001` and `S003` exist, the next ID is `S004`, not `S002`.
 
 **When delegating**, the subagent reads the raw material, writes the summary file itself at full
 fidelity, and returns a ~15-line digest. It must **never edit** `MAP.md`, `questions.md`, or
