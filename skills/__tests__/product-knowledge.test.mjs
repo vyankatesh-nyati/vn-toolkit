@@ -80,3 +80,66 @@ test('topics are lazily created with a stated threshold', () => {
 test('inferred facts are distinguishable from sourced ones', () => {
   assert.ok(reconciliation.includes('(inferred)'), 'inferred tag defined')
 })
+
+const learn = read('skills/learning-product-knowledge/SKILL.md')
+const learnBody = learn.slice(learn.indexOf('---', 3))
+const learnDesc = learn.slice(0, learn.indexOf('---', 3))
+
+test('learn skill declares name and a description with triggers', () => {
+  assert.ok(learnDesc.includes('name: learning-product-knowledge'), 'skill name')
+  assert.ok(/description:/.test(learnDesc), 'description present')
+  assert.ok(/\/learn/.test(learnDesc), 'command named in description')
+})
+
+test('learn description states its negative cases', () => {
+  const d = learnDesc.replace(/\s+/g, ' ')
+  assert.ok(/not/i.test(d), 'negative framing present')
+  assert.ok(/exploring-project-context/.test(d), 'defers code grounding to exploring-project-context')
+  assert.ok(/README|CLAUDE\.md/.test(d), 'excludes writing repo docs')
+  assert.ok(/PR|diff/.test(d), 'excludes summarising a PR or diff')
+})
+
+test('learn skill spells out all four resolution rules in order', () => {
+  const idx = s => learnBody.indexOf(s)
+  assert.ok(idx('--product') > -1, 'rule 1: explicit argument')
+  assert.ok(idx('repos:') > -1, 'rule 2: cwd matches repos front matter')
+  assert.ok(/exactly one/i.test(learnBody), 'rule 3: single existing KB')
+  assert.ok(/never guess/i.test(learnBody), 'rule 4: ask, never guess')
+  assert.ok(idx('--product') < idx('repos:'), 'explicit arg precedes cwd matching')
+})
+
+test('learn skill pins the KB root', () => {
+  assert.ok(learnBody.includes('~/.claude/knowledge/'), 'KB root stated')
+  assert.ok(/never.*team repo|not.*inside the team repo/i.test(learnBody), 'team repo excluded')
+})
+
+test('learn skill states the size threshold and its exceptions', () => {
+  assert.ok(learnBody.includes('600'), 'threshold value')
+  assert.ok(/pasted/i.test(learnBody), 'pasted text handled')
+  assert.ok(/director|multi-file/i.test(learnBody), 'directories always delegated')
+})
+
+test('learn skill forbids the subagent editing the map', () => {
+  assert.ok(/never edit/i.test(learnBody), 'write ban present')
+  assert.ok(/reconcil/i.test(learnBody), 'reconciliation named as main-session work')
+})
+
+test('learn skill points at its reference files', () => {
+  assert.ok(learnBody.includes('references/map-template.md'), 'map template referenced')
+  assert.ok(learnBody.includes('references/source-template.md'), 'source template referenced')
+  assert.ok(learnBody.includes('references/reconciliation.md'), 'reconciliation referenced')
+})
+
+test('learn skill requires symbol verification for code sources', () => {
+  assert.ok(/LSP/.test(learnBody), 'LSP-first stated')
+  assert.ok(/definition/i.test(learnBody), 'definition must be opened')
+})
+
+test('learn skill reports back concisely', () => {
+  assert.ok(/disputed/i.test(learnBody), 'disputes surfaced in the report')
+  assert.ok(/\b(ten|10) lines\b/i.test(learnBody), 'report length bounded')
+})
+
+test('learn skill stays within the size budget', () => {
+  assert.ok(learn.split('\n').length < 500, `SKILL.md under 500 lines (was ${learn.split('\n').length})`)
+})
