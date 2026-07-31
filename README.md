@@ -33,6 +33,22 @@ Steps 9 (`writing-tests`) and 10 (`using-new-technology`) ship with this plugin 
 | `/feature <ask>` | Launch the gated end-to-end feature workflow |
 | `/feature-auto <ask>` | Experimental: build the feature autonomously end-to-end and raise a draft MR; two stops — a phase-0 abort and a plan-approval gate before implementation |
 | `/feature-amend <slug> "<feedback>"` | Experimental: amend a prior /feature-auto run from feedback; re-runs only the affected phases; additive commits |
+| `/learn [path\|url]` | Absorb a doc, transcript, diagram, or code area into a product knowledge base and refine its memory map; leave the argument empty to ingest pasted text |
+| `/recall <question>` | Answer from a product's knowledge base, labelling known, inferred, and missing; `/recall gaps` lists open questions and contradictions |
+
+## Product knowledge base
+
+An incremental knowledge base for a product you are learning, at `~/.claude/knowledge/<product>/`.
+Hand over a doc, transcript, diagram, or code area with `/learn` and it becomes one source summary
+plus a refined `MAP.md`; ask with `/recall` and every claim comes back labelled known, inferred, or
+not in the KB. Storage is keyed by product rather than working directory, so a source can be handed
+over from any session. A new source that contradicts the map never overwrites it — both claims are
+kept and the conflict is routed to `questions.md`.
+
+| Skill | Purpose |
+|---|---|
+| `learning-product-knowledge` | Ingest a source, summarise it, reconcile facts into the memory map |
+| `recalling-product-knowledge` | Answer from the knowledge base, labelling provenance and gaps |
 
 ## Cross-cutting rules
 

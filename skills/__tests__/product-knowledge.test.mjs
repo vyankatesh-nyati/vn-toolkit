@@ -190,3 +190,36 @@ test('recall resolves the product the same way as learn', () => {
 test('recall skill stays within the size budget', () => {
   assert.ok(recall.split('\n').length < 500, `SKILL.md under 500 lines (was ${recall.split('\n').length})`)
 })
+
+const learnCmd = read('commands/learn.md')
+const recallCmd = read('commands/recall.md')
+
+test('learn command routes to the ingest skill', () => {
+  assert.ok(/description:/.test(learnCmd), 'front matter description')
+  assert.ok(/argument-hint:/.test(learnCmd), 'argument hint present')
+  assert.ok(learnCmd.includes('learning-product-knowledge'), 'names the skill')
+  assert.ok(learnCmd.includes('$ARGUMENTS'), 'passes arguments through')
+})
+
+test('learn command tolerates an empty argument for pasted text', () => {
+  assert.ok(/paste/i.test(learnCmd), 'pasted-text path documented')
+})
+
+test('recall command routes to the lookup skill', () => {
+  assert.ok(/description:/.test(recallCmd), 'front matter description')
+  assert.ok(recallCmd.includes('recalling-product-knowledge'), 'names the skill')
+  assert.ok(recallCmd.includes('$ARGUMENTS'), 'passes arguments through')
+})
+
+test('recall command documents the gaps lookup', () => {
+  assert.ok(/\bgaps\b/.test(recallCmd), 'gaps argument documented')
+})
+
+test('both manifests declare 2.4.0', () => {
+  const plugin = JSON.parse(read('.claude-plugin/plugin.json'))
+  const market = JSON.parse(read('.claude-plugin/marketplace.json'))
+  assert.equal(plugin.version, '2.4.0', 'plugin.json bumped')
+  const marketVersions = JSON.stringify(market).match(/"version":\s*"[^"]+"/g) || []
+  assert.ok(marketVersions.length >= 2, 'marketplace declares versions')
+  marketVersions.forEach(v => assert.ok(v.includes('2.4.0'), `marketplace agrees: ${v}`))
+})
