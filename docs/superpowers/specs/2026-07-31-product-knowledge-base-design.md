@@ -126,8 +126,9 @@ both source IDs and both claims). Answered entries move into `MAP.md` and are st
 
 ## Product resolution
 
-Deterministic, implemented in `scripts/kb.mjs`, not left to model interpretation — writing into
-the wrong product's KB is silent corruption.
+Writing into the wrong product's KB is silent corruption, so the algorithm is spelled out
+verbatim in the skill as copyable Bash rather than described. (A helper script was the original
+intent; see Risks for why it was dropped.)
 
 ```
 1. explicit in args      /learn --product acme docs/x.md
@@ -142,7 +143,7 @@ An unknown product name prompts for slug plus repo paths, then scaffolds.
 
 | Step | Actor |
 |---|---|
-| Resolve product | `kb.mjs resolve` |
+| Resolve product | main, via the verbatim Bash in the skill |
 | Classify source (path / dir / URL / pasted) and measure size | main |
 | Read raw material | inline if <600 lines; subagent if larger, or any directory / multi-file. Pasted text is always inline — it is already in context and has no size gate. |
 | Write `sources/SNNN-<slug>.md` | whichever actor read it |
@@ -197,10 +198,10 @@ skills/learning-product-knowledge/references/reconciliation.md
 skills/recalling-product-knowledge/SKILL.md
 commands/learn.md
 commands/recall.md
-scripts/kb.mjs                       # resolve | scaffold | next-id | stat
-scripts/__tests__/kb.test.mjs
+skills/__tests__/product-knowledge.test.mjs
 .claude-plugin/plugin.json           # → 2.4.0
 .claude-plugin/marketplace.json      # → 2.4.0
+workflows/__tests__/journal.test.mjs # existing version assertion, 2.3.0 → 2.4.0
 ```
 
 Both manifests are bumped together, per repo convention.
@@ -224,22 +225,25 @@ that. Both descriptions therefore state when to fire *and* when not to:
 
 ## Testing
 
-`scripts/__tests__/kb.test.mjs`, using `node:test` and matching the existing
-`workflows/__tests__/*.test.mjs` convention:
+The deliverable is Markdown, so it is tested the way this repo already tests Markdown: content
+assertions over `SKILL.md`, exactly as `workflows/__tests__/journal.test.mjs` does. Tests live in
+`skills/__tests__/product-knowledge.test.mjs`, using `node:test` and `node:assert/strict`, run with
+`node --test`.
 
-- resolve by explicit argument
-- resolve by cwd matching a `repos:` entry
-- ambiguous match → error, no write
-- no match → error, no write
-- `next-id` continues past gaps in existing IDs
-- `scaffold` is idempotent on an existing KB
+Asserted contracts:
 
-The resolver returns an object, so it is asserted as a whole with `assert.deepStrictEqual` rather
-than field by field. (The global AssertJ rule is Java-specific and does not apply here; whole-object
-assertion is the part that carries over.)
+- both skill descriptions state their negative cases (the specific must-not-fire phrases)
+- the learn skill spells out all four resolution rules in order, and states "never guess"
+- the learn skill forbids a subagent from editing `MAP.md`
+- reconciliation defines all three outcomes, and `⚠ disputed` routes to `questions.md`
+- the recall skill defines the three-way known / inferred / not-in-KB labelling
+- the recall skill forbids answering from outside the KB
+- `topics/` is documented as lazily created, with its promotion threshold
+- both templates contain every required section heading
+- both manifests declare the same version
 
-The skills themselves are Markdown and are exercised by use rather than by automated test in this
-version.
+This is weaker than behavioural testing — it verifies the instructions say the right thing, not
+that the model obeys them. That is the gap evals would have closed.
 
 ## Risks
 
@@ -248,10 +252,13 @@ version.
   cases. Adding `evals/cases.json` plus a `claude -p` runner is the natural follow-up; assertions
   would be file-based (did `MAP.md` gain a row, did a contradiction reach `questions.md`), so no
   trace-inspection harness is required.
-- **Helper script path.** The skill must locate `kb.mjs` inside the installed plugin.
-  `${CLAUDE_PLUGIN_ROOT}` is the intended mechanism and must be confirmed to be available in
-  skill-invoked Bash during implementation; if it is not, the script is dropped and its four
-  operations become inline Bash spelled out in the skill.
+- **Helper script path — RESOLVED, script dropped.** Verified on 2026-07-31: `CLAUDE_PLUGIN_ROOT`
+  is unset in skill-invoked Bash, and the installed plugin is version-pinned at
+  `~/.claude/plugins/cache/vn-toolkit/vn-toolkit/<version>/`, so any hardcoded path breaks on
+  every version bump. `kb.mjs` is therefore unreachable and was dropped; its four operations are
+  inline Bash spelled out verbatim in the skill. Consequence: resolution correctness is no longer
+  guarded by unit tests, only by the explicitness of the instructions — which raises the cost of
+  having skipped evals.
 - **Map growth.** A large product's `MAP.md` could grow past comfortable reading. The lazy
   `topics/` promotion rule is the pressure valve; if the map still bloats, sections move wholesale
   into topic files and the map keeps only pointers.
