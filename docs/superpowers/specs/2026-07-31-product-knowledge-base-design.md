@@ -131,8 +131,12 @@ verbatim in the skill as copyable Bash rather than described. (A helper script w
 intent; see Risks for why it was dropped.)
 
 The Bash uses `find`, not a `*` glob. Under zsh an unmatched glob raises NOMATCH, which
-`2>/dev/null` does not suppress and which aborts the whole command line — so a glob-based snippet
-fails on exactly the first run, before any KB exists. Verified empirically on 2026-07-31.
+`2>/dev/null` does not suppress — so a glob-based snippet misbehaves on exactly the first run,
+before any KB exists. Observed on 2026-07-31: in the tool shell this project's skills actually run
+in, the error aborted the rest of the command line and the following `pwd` never executed; under a
+plain `zsh -c`, `pwd` did still run. The blast radius is therefore shell-dependent, but the failure
+window — the very first invocation — is not. `find` is correct in both cases and is the reason this
+snippet does not use a glob.
 
 Resolution compares printed values rather than string-matching in the shell: `repos:` stores tilde
 paths while `pwd` prints absolute ones, and a match must succeed when the cwd is a *descendant* of
