@@ -502,7 +502,7 @@ the first that resolves:
 1. **Explicit in the request** — `--product <slug>`, or "for <product>".
 2. **`cwd` matches a `repos:` entry** in some `MAP.md` front matter:
    ```bash
-   grep -H "^repos:" ~/.claude/knowledge/*/MAP.md 2>/dev/null; pwd
+   find ~/.claude/knowledge -maxdepth 2 -name MAP.md -exec grep -H "^repos:" {} + 2>/dev/null; pwd
    ```
    Expand each `~` to the home directory, then pick the KB whose repo path **is the current
    directory or one of its ancestors**. If two match, the longest path wins. You compare the
@@ -511,7 +511,7 @@ the first that resolves:
    script is reachable here.
 3. **Exactly one KB exists** — use it, and say which one you chose:
    ```bash
-   ls -d ~/.claude/knowledge/*/ 2>/dev/null
+   find ~/.claude/knowledge -mindepth 1 -maxdepth 1 -type d 2>/dev/null
    ```
 4. **Otherwise ask.** Offer the existing slugs. **Never guess.**
 
@@ -712,7 +712,7 @@ In order, stopping at the first that resolves:
 1. **Explicit in the request** — `--product <slug>`, or "for <product>".
 2. **`cwd` matches a `repos:` entry** in some `MAP.md` front matter:
    ```bash
-   grep -H "^repos:" ~/.claude/knowledge/*/MAP.md 2>/dev/null; pwd
+   find ~/.claude/knowledge -maxdepth 2 -name MAP.md -exec grep -H "^repos:" {} + 2>/dev/null; pwd
    ```
    Expand each `~` to the home directory, then pick the KB whose repo path **is the current
    directory or one of its ancestors**. If two match, the longest path wins. You compare the

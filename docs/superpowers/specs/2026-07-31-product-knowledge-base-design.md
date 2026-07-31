@@ -130,6 +130,14 @@ Writing into the wrong product's KB is silent corruption, so the algorithm is sp
 verbatim in the skill as copyable Bash rather than described. (A helper script was the original
 intent; see Risks for why it was dropped.)
 
+The Bash uses `find`, not a `*` glob. Under zsh an unmatched glob raises NOMATCH, which
+`2>/dev/null` does not suppress and which aborts the whole command line — so a glob-based snippet
+fails on exactly the first run, before any KB exists. Verified empirically on 2026-07-31.
+
+Resolution compares printed values rather than string-matching in the shell: `repos:` stores tilde
+paths while `pwd` prints absolute ones, and a match must succeed when the cwd is a *descendant* of
+a repo path, not only when it is equal.
+
 ```
 1. explicit in args      /learn --product acme docs/x.md
 2. cwd matches a repos: entry in some MAP.md front matter
