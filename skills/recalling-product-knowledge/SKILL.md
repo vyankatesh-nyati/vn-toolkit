@@ -30,7 +30,7 @@ In order, stopping at the first that resolves:
 1. **Explicit in the request** — `--product <slug>`, or "for <product>".
 2. **`cwd` matches a `repos:` entry** in some `MAP.md` front matter:
    ```bash
-   grep -H "^repos:" ~/.claude/knowledge/*/MAP.md 2>/dev/null; pwd
+   find ~/.claude/knowledge -maxdepth 2 -name MAP.md -exec grep -H "^repos:" {} + 2>/dev/null; pwd
    ```
    Expand each `~` to the home directory, then pick the KB whose repo path **is the current
    directory or one of its ancestors**. If two match, the longest path wins. You compare the
@@ -48,9 +48,10 @@ implying it came from the KB.
 Read `MAP.md` first. It is the **only entry point** and carries its own source index, so it tells
 you where everything else is.
 
-Then read **only** the sources and topics the question actually needs — never all of them. The map's
-`Src` tags and `Sources index` point you at the right ones. Loading the whole KB defeats its
-purpose.
+Then read **only** the sources and topics the question actually needs — never all of them. One
+exception: if a relevant `MAP.md` entry is marked `⚠ disputed`, also read the Contradictions section
+of `questions.md` — the second reading is recorded there, not in the map. The map's `Src` tags and
+`Sources index` point you at the right ones. Loading the whole KB defeats its purpose.
 
 ## Step 3 — Answer, labelled
 

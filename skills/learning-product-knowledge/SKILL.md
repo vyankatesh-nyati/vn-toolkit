@@ -51,13 +51,13 @@ the first that resolves:
 1. **Explicit in the request** — `--product <slug>`, or "for <product>".
 2. **`cwd` matches a `repos:` entry** in some `MAP.md` front matter:
    ```bash
-   grep -H "^repos:" ~/.claude/knowledge/*/MAP.md 2>/dev/null; pwd
+   find ~/.claude/knowledge -maxdepth 2 -name MAP.md -exec grep -H "^repos:" {} + 2>/dev/null; pwd
    ```
 
 Expand each `~` to the home directory, then pick the KB whose repo path **is the current directory or one of its ancestors**. If two match, the longest path wins. You compare the printed values yourself on purpose: `repos:` holds tilde paths while `pwd` prints an absolute one, and a one-liner doing both tilde expansion and prefix matching is fragile. No helper script is reachable here.
 3. **Exactly one KB exists** — use it, and say which one you chose:
    ```bash
-   ls -d ~/.claude/knowledge/*/ 2>/dev/null
+   find ~/.claude/knowledge -mindepth 1 -maxdepth 1 -type d 2>/dev/null
    ```
 4. **Otherwise ask.** Offer the existing slugs. **Never guess.**
 
@@ -94,7 +94,9 @@ Write one summary per source to `sources/S<NNN>-<slug>.md` using
 ls ~/.claude/knowledge/<slug>/sources/ 2>/dev/null | grep -o '^S[0-9]\{3\}' | sort | tail -1
 ```
 
-That is the highest existing ID — add one and zero-pad to three digits. IDs are fixed-width, so a lexicographic sort gives the true maximum. Never reuse a gap: if `S001` and `S003` exist, the next ID is `S004`, not `S002`.
+That is the highest existing ID — add one and zero-pad to three digits. If it returns nothing,
+`sources/` is empty and the first ID is `S001`. IDs are fixed-width, so a lexicographic sort gives
+the true maximum. Never reuse a gap: if `S001` and `S003` exist, the next ID is `S004`, not `S002`.
 
 **When delegating**, the subagent reads the raw material, writes the summary file itself at full
 fidelity, and returns a ~15-line digest. It must **never edit** `MAP.md`, `questions.md`, or

@@ -37,6 +37,8 @@ sources: <n>
 - <Team rule or non-obvious invariant> [S1]
 
 ## Sources index
+| Src | Original | Ingested | Covers |
+|-----|----------|----------|--------|
 | S1 | <path or url> | <YYYY-MM-DD> | <what it covers> |
 
 ## Open questions → questions.md (<n> open)
@@ -50,3 +52,4 @@ sources: <n>
 - `repos:` is what makes `cwd`-based product resolution work. Add every repo path belonging to the product.
 - `updated:` and `sources:` are refreshed on every ingest.
 - If a section outgrows ~10 lines and 2+ sources feed it, move the detail to `topics/<slug>.md` and leave a pointer.
+- A citation tag maps to its summary file by zero-padding: `[S1]` is `sources/S001-*.md`, `[S12]` is `sources/S012-*.md`.

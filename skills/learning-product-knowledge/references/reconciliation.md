@@ -25,6 +25,10 @@ Take each durable fact from the new source and classify it against the current m
    claims, quoted closely enough to be arguable.
 3. Report it in the run summary — a contradiction is the most useful thing an ingest can produce.
 
+**When you cannot tell** whether a fact refines or contradicts, treat it as **contradicting**.
+Refining overwrites the old wording; contradicting keeps both. Choosing the safer branch costs one
+entry in `questions.md` — choosing wrong costs the claim.
+
 A confidently wrong map is worse than an incomplete one. During onboarding a contradiction is
 usually real signal: a stale document, or two teams using one word differently.
 
