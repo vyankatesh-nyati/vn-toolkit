@@ -143,3 +143,50 @@ test('learn skill reports back concisely', () => {
 test('learn skill stays within the size budget', () => {
   assert.ok(learn.split('\n').length < 500, `SKILL.md under 500 lines (was ${learn.split('\n').length})`)
 })
+
+const recall = read('skills/recalling-product-knowledge/SKILL.md')
+const recallBody = recall.slice(recall.indexOf('---', 3))
+const recallDesc = recall.slice(0, recall.indexOf('---', 3))
+
+test('recall skill declares name and description', () => {
+  assert.ok(recallDesc.includes('name: recalling-product-knowledge'), 'skill name')
+  assert.ok(/\/recall/.test(recallDesc), 'command named in description')
+})
+
+test('recall description states its negative cases', () => {
+  const d = recallDesc.replace(/\s+/g, ' ')
+  assert.ok(/not/i.test(d), 'negative framing present')
+  assert.ok(/general programming|general coding/i.test(d), 'excludes general programming questions')
+  assert.ok(/no knowledge base|without a knowledge base/i.test(d), 'excludes products with no KB')
+})
+
+test('recall reads MAP.md as the sole entry point', () => {
+  assert.ok(recallBody.includes('MAP.md'), 'map named')
+  assert.ok(/entry point/i.test(recallBody), 'entry-point role stated')
+  assert.ok(/only the|never all/i.test(recallBody), 'selective source loading')
+})
+
+test('recall labels every claim three ways', () => {
+  assert.ok(/\bknown\b/i.test(recallBody), 'known label')
+  assert.ok(/\binferred\b/i.test(recallBody), 'inferred label')
+  assert.ok(/not in the KB/i.test(recallBody), 'not-in-KB label')
+})
+
+test('recall refuses to answer from outside the KB', () => {
+  assert.ok(/never (guess|fabricat)/i.test(recallBody), 'guessing forbidden')
+  assert.ok(/\/learn/.test(recallBody), 'offers to ingest the missing doc')
+})
+
+test('recall supports the gaps lookup', () => {
+  assert.ok(/\bgaps\b/.test(recallBody), 'gaps argument')
+  assert.ok(recallBody.includes('questions.md'), 'gaps reads questions.md')
+})
+
+test('recall resolves the product the same way as learn', () => {
+  assert.ok(recallBody.includes('repos:'), 'cwd matching via repos front matter')
+  assert.ok(/never guess/i.test(recallBody), 'ask rather than guess')
+})
+
+test('recall skill stays within the size budget', () => {
+  assert.ok(recall.split('\n').length < 500, `SKILL.md under 500 lines (was ${recall.split('\n').length})`)
+})
